@@ -1,0 +1,296 @@
+FORMAT FOR SUBMITTING ANNUAL REPORT ON RESPOND PROJECTS
+
+Period of Report           : 01 Mar 2025 – 28 Feb 2026 (Year-1)
+Annual Report No.          : First
+
+1. Title of Research Project:
+   Utilizing Satellite-Based Observations to Correct the CMIP6 Climate Projections of Sea Level Anomaly and Significant Wave Height
+
+2. Name & Designation of the Principal Investigator:
+   Name        : Pritam Anand
+   Designation : Assistant Professor (DA-IICT, Gandhinagar, India)
+
+   Name & address of the institution:
+   DA-IICT, Gandhinagar, India
+
+3. DOS sanction order No. and date:
+   ISRO-SAC-2025-003 
+
+4. Starting date of the Project:
+   01 Mar 2025
+
+5. Grants approved:
+   As per initial proposal budget (year-wise):
+   - Year 1 total: Rs. 6,30,520/-
+   - Year 2 total: Rs. 6,30,520/-
+   - Year 3 total: Rs. 6,89,200/-
+   - Grand total: Rs. 19,50,240/-
+   
+
+6. Expenditure incurred during the period of project:
+
+   Amount approved    Amount spent    Remarks (by ISRO if any)
+   --------------     ------------    -------------------------
+   TBD               TBD             TBD
+
+7. Staff Salaries:
+   Fellowships (as per proposal):
+   - Year 1: Rs. 4,31,520/-
+   - Year 2: Rs. 4,31,520/-
+   - Year 3: Rs. 4,87,200/-
+   
+
+8. Research Staff:
+   (a) Name            : Shyam Saktawat
+       Designation     : JRF (as per project onboarding)
+       Date of appointment : 01 Mar 2025
+
+
+
+11. Equipment / Name & Cost details:
+
+   Item / Equipment (Name & Cost)     Amount approved    Amount spent    Remarks
+   -------------------------------    --------------     ------------    ------
+   Nil / TBD (proposal did not itemize equipment; to be updated if sanctioned)    TBD    TBD    TBD
+
+12. Travel:
+   Internal Travel:
+   - Year 1: Rs. 33,000/-
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+   
+
+13. Contingency:
+   Contingencies:
+   - Year 1: Rs. 33,000/-
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+   
+
+14. Others:
+   Others :
+   - Year 1: Rs. 33,000/-
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+   
+
+15. Total unspent amount from previous years (negative balance):
+   Nil
+
+16. Details of grants required for 2nd / 3rd year:
+
+   Item                         Amount approved by ISRO (during sanction)    Amount requested now    Remarks
+   --------------------------   ------------------------------------------   --------------------    ------
+   Year-2 total (proposal)      TBD                                          Rs. 6,30,520/-         As per proposal (to match sanction)
+   Year-3 total (proposal)      TBD                                          Rs. 6,89,200/-         As per proposal (to match sanction)
+
+17. Staff Salaries:
+   Fellowships (requested):
+   - Year 2: Rs. 4,31,520/-
+   - Year 3: Rs. 4,87,200/-
+
+18. Equipments:
+   Nil 
+
+19. Consumable & Supplies:
+   Nil 
+
+20. Travel:
+   Internal Travel:
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+
+21. Contingency:
+   Contingencies:
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+
+22. Others:
+   Others:
+   - Year 2: Rs. 33,000/-
+   - Year 3: Rs. 34,000/-
+
+Total:
+   Requested (as per proposal, Year 2 + Year 3): Rs. 13,19,720/-
+
+23. Report of the Work done:
+
+   i) Objectives
+   - Quantify uncertainties in CMIP6 Significant Wave Height (SWH) and Sea Level Anomaly (SLA) over 2015–2023 against satellite altimetry.
+   - Develop AI/ML models to correct CMIP6 biases (pilot Random Forest; planned QRNN/DeepAR/BNN with uncertainty).
+   - Generate probabilistic long-term forecasts for the Indian Ocean and extend the framework globally.
+   - Validate using spatial/temporal cross-validation, tide-gauge checks, and extreme-event cases.
+   - Deliver corrected datasets (NetCDF) with uncertainty layers on MOSDAC for user agencies.
+
+   ii) Summary of the work done
+   - Project setup and onboarding completed; data access and storage pipeline established.
+   - Acquired and organized CMIP6 and satellite altimetry datasets for SWH and SLA.
+   - Implemented preprocessing + QC + co-location and regridding pipeline (Python/xarray), enabling monthly aligned analyses.
+   - Completed pilot SWH analysis for the Indian Ocean (2015–2020) and developed a Random Forest correction model.
+   - Initiated SLA preprocessing and baseline trend estimation at global scale; pilot automation demonstrated.
+   - Prepared scripts/plots and reproducible artifacts (trained model + figures) for reporting and publication workflows.
+
+   iii) Details of work done and results obtained during the period of the report
+
+   Proposed methodology (as per proposal / ongoing implementation):
+   - Data:
+     - CMEMS DUACS L4 altimetry (0.25°, global, 1993–2024) for SLA reference products.
+     - CMIP6 variables: SWH and zos/SLA.
+     - Ancillary: bathymetry, distance-to-coast, and climate indices (ENSO/IOD) (planned feature augmentation).
+   - Harmonization:
+     - QC, dynamic land/ice masks; conservative or bilinear regridding (as appropriate);
+       monthly time alignment; SLA anomaly computation relative to long-term means.
+   - Features (current + planned):
+     - CMIP6 value, lat/lon, month/season, basin/region; spatial gradients; climate indices.
+   - Modeling:
+     - Pilot Random Forest for bias correction; planned uncertainty-aware models (QRNN/DeepAR/BNN).
+     - Spatial/temporal block cross-validation; predict bias term and correct CMIP6 fields.
+   - Validation:
+     - R², RMSE/MAE; extremes; physical consistency checks (trend/climatology preservation).
+   - Outputs:
+     - Corrected NetCDF datasets + uncertainty layers; metadata; MOSDAC distribution.
+
+   Datasets prepared (completed / ongoing):
+   - CMIP6 SWH (Indian Ocean 50–110°E, 70°S–70°N; 2015-01-16 to 2020-12-16; 0.5°).
+   - Altimetry SWH (regional 2°; 2002-01-23 to 2020-12-16).
+   - SLA datasets (global): CMEMS DUACS L4 and CMIP6 zos/SLA (ongoing preprocessing and baseline analysis).
+
+   Data statistics:
+   - Total gridded samples processed (SWH pilot): 151,200
+   - Valid ocean samples after masking/NaNs (SWH pilot): ~85k
+
+   SWH comparison results (2015–2020 overlap; pilot run):
+   - Mean difference (CMIP6 – Altimetry): +0.162 m
+   - Standard deviation: 0.576 m
+   - RMSE: 0.599 m
+   - Correlation: r = 0.914
+   - Regression: y = 1.075x − 0.0449
+
+   AI/ML correction model:
+   - Model: RandomForestRegressor (pilot baseline)
+   - Features: CMIP6 value (SWH), latitude, longitude, month
+   - Split: train/test = 80/20 (pilot evaluation)
+   - Sample size used (pilot): 85,217 points (as per pilot run)
+   - Feature importance (pilot):
+     - CMIP6 value: 88.10%
+     - Latitude: 4.68%
+     - Month: 4.07%
+     - Longitude: 3.15%
+
+   ML correction performance (pilot RF):
+   - R²: 0.933
+   - RMSE: 0.308 m
+   - MSE: 0.095
+
+   SLA preliminary (global; ongoing):
+   - 2015–2024 mean rate estimate: CMIP6 ≈ 3.6 mm/yr vs altimetry ≈ 3.3 mm/yr.
+   - Pipeline: automated Python/xarray; QC retention ≈ 99.7%; end-to-end pilot run ≈ 22 s (demo scale).
+
+   Key outputs generated (achieved):
+   - Reproducible QC/co-location/regridding + Random Forest correction pipeline (SWH pilot).
+   - Pilot corrected SWH for Indian Ocean; global SLA baseline summaries (in progress).
+   - Data lake + scripts on institute HPC; JRF onboarding and training (Mar 2025).
+   - Figures/maps/tables prepared; corrected datasets planned for MOSDAC hosting.
+
+   iv) Work proposed to be done during the next year
+   Future plan (ongoing project):
+   - 0–6 months:
+     - Complete global SWH correction (1993–2024); implement QRNN/BNN for bias + uncertainty; spatial/temporal block-CV.
+   - 6–12 months:
+     - SLA bias analysis + correction; tide-gauge validation; produce SSP-corrected products.
+   - 12–18 months:
+     - MOSDAC release; user documentation; trainings; journal papers.
+
+24. Any other relevant information:
+   ISRO JPMC Meeting for SAC New/Ongoing/In-completion Project Presentation:
+
+   A) End-to-end schedule of the project (as on date)
+   Sr. No.  Activity                                   Planned Start   Planned End     Actual Start    Actual End      % Complete   Status
+   ------   ----------------------------------------   ------------    -----------    ------------    -----------     ----------   -------------
+   1        Project setup, access, onboarding          01 Mar 2025     31 Mar 2025    01 Mar 2025     12 Apr 2025     100%         Completed
+   2        Data acquisition (altimetry+CMIP6), storage 15 Mar 2025     30 Apr 2025    15 Mar 2025     25 Jul 2025     90%          Near-completion
+   3        Preprocessing & QC (co-location, regrid)   01 Apr 2025     31 May 2025    10 Apr 2025     Ongoing         85%          On track
+   4        Pilot SWH analysis (Indian Ocean, 2015–2020)15 May 2025    31 Jul 2025    15 May 2025     31 Jul 2025     100%         Completed
+   5        SLA preprocessing & baseline trend analysis 15 Jun 2025     31 Aug 2025   15 Jun 2025     Ongoing         50%          On track
+   6        Global SWH expansion (32 years, all basins) 01 Sep 2025     31 Mar 2026   Planned         Planned         0%           Planned
+   7        Advanced ML (QRNN/DeepAR/BNN) + uncertainty 01 Oct 2025     31 Mar 2026   Planned         Planned         0%           Planned
+   8        MOSDAC integration, docs, dissemination     01 Jul 2026     31 Dec 2026   Planned         Planned         0%           Planned
+
+   B) Project outcome (proposed/achieved)
+   Achieved:
+   - Reproducible QC/co-location/regridding + RF correction pipeline.
+   - Pilot corrected SWH for Indian Ocean; global SLA baseline summaries.
+   - Data lake + scripts on institute HPC; JRF onboarding and training (Mar 2025).
+   Proposed (next):
+   - Global SWH correction (1993–2024) with uncertainty layers.
+   - SLA correction and SSP scenario products.
+   - Journal submission and AGU/EGU abstracts; MOSDAC publication.
+
+   C) Utilisation of the outputs/deliverables of the sponsored research project
+   Areas/aspects of utilization (proposed/actual)                             Remarks
+   - ISRO missions: SARAL/AltiKa, Sentinel-6A validation; inputs to mission    Mission product improvement
+     product improvement
+   - Technological applications: coastal infrastructure design, ports,         Coastal engineering and safety
+     offshore energy, shipping safety
+   - Advanced R&D studies: bias diagnostics for CMIP7; model improvement       Research and model development
+   - Supporting user agencies: INCOIS, IMD, NIOT, State coastal authorities;   MOSDAC dissemination + academic use
+     academic users via MOSDAC
+   - National/international forums: conference submissions; open-source        Publications, open data/code
+     code/data
+
+   D) Technology Readiness Level (TRL) of output/deliverables:
+   - Planned TRL : TBD (in discussion with SAC Co-PI)
+   - Achieved TRL: TBD
+
+   E) Stakeholders / acknowledgments:
+   - ISRO/SAC (MOSDAC), Project Monitoring Committee
+   - DA-IICT HPC and research support
+   - CMEMS/DUACS, ESGF/CMIP6, NASA PO.DAAC (data providers)
+   - PI: Pritam Anand; JRF: Shyam Saktawat; collaborators and students
+   - Figures/maps/tables available upon request; corrected datasets planned to be hosted on MOSDAC.
+
+   Annexure A: Proposal summary (≤200 words; from initial proposal)
+   Sea level anomaly and significant wave height play a vital role in coastal management and planning.
+   Projections of these variables under Shared Socioeconomic Pathways (SSPs) are available from CMIP6
+   based on simulations from multiple Earth System Models (ESMs) up to 2100. ESMs suffer from
+   inherent errors due to imperfect parameterizations and incomplete understanding of interactions and
+   feedback mechanisms; consequently, projections of critical parameters may contain significant biases
+   that can misguide climate adaptation planning. This project quantifies uncertainties in CMIP6 sea level
+   anomaly and significant wave height using satellite altimeter observations for the observed period
+   (2015–2022/2023) and develops state-of-the-art data analytics / AI-ML models to learn differences
+   between observations and simulations. The learned correction models will then be applied to future
+   CMIP6 projections to produce corrected products and associated uncertainty information for decision
+   makers and user agencies.
+
+   Annexure B: Linkages to Space Programme / Deliverables to ISRO
+   - Satellite data utilization for societal benefits:
+     - Use SLA and SWH observations from SARAL/AltiKa and other international missions; EOS-04 SAR
+       derived wave height is also planned for use where applicable.
+   - Deliverables:
+     - Bias-corrected CMIP6 SLA and SWH projections (NetCDF) and uncertainty layers for multiple SSPs.
+     - Dissemination through MOSDAC web portal with documentation/metadata.
+     - Inputs to ISRO for sensor/observing-system gap analysis and future mission requirements.
+
+   Annexure C: Approach (as per proposal; condensed)
+   - Data processing (~8 months): acquire CMIP6 variables (SWH, zos/SLA) for multiple models/SSPs;
+     acquire merged altimeter products (e.g., AVISO/DUACS) for SLA/SWH; QC, aggregation, unit
+     conversions; compute SLA anomalies vs long-term means; align/regrid; split 2015–2021 train and
+     2021–2023 validation (proposal plan; implemented split may vary by pilot dataset availability).
+   - Uncertainty modelling (~13 months): QRNN, DeepAR, BNN, ensemble methods, transformer-based
+     models, and deep Gaussian processes; compare using coverage probability, interval length, and
+     training time; select models per resource constraints.
+   - Model evaluation (~7 months): evaluate CMIP6 model skill for SLA/SWH and define metrics aligned
+     with prediction-interval performance.
+   - Recomputing projections (~8 months): apply learned bias/uncertainty models to generate corrected
+     long-term projections.
+
+   Annexure D: Institutional facilities (as per proposal)
+   - DA-IICT computing: multiple GPU servers; 5-node HPC cluster (2 GPU-enabled); PARAM Shavak
+     supercomputer deployed; MATLAB license available.
+
+   Annexure E: Whether the same or similar proposal submitted to other GoI agencies
+   - No (as per proposal).
+
+Signature of the Principal Investigator:
+   ___________________________
+

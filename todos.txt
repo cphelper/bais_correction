@@ -1,0 +1,8 @@
+
+- [x] Inspect data files (`cowcliphs.nc`, `io-altimeter.nc`) [completed]
+- [x] Create analysis script (`analyze_and_report.py`) to quantify uncertainties [completed]
+- [x] Generate initial report on uncertainties [completed]
+- [x] Create AI/ML training script (`train_correction_model.py`) [completed]
+- [x] Train Random Forest model and validate on hold-out set (2019-2020) [completed]
+- [x] Update report with AI/ML correction results and future projection strategy [completed]
+

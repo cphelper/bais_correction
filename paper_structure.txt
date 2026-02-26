@@ -1,0 +1,130 @@
+Introduction
+
+Context:
+- Ocean wave climate projections (Significant Wave Height, SWH) are needed for coastal risk assessment and maritime infrastructure planning.
+- The Indian Ocean wave climate is highly non-stationary due to monsoons (SW monsoon in JJA, NE monsoon in DJF) and Southern Ocean swell influence.
+
+Study Region:
+- Indian Ocean domain: 50°–110°E, 70°S–70°N.
+- Common analysis grid: 2° (monthly means).
+
+Research Problem ending with Objectives
+
+Research Problem:
+- CMIP6-based SWH products (or CMIP6-forced wave chains) show systematic, spatially structured biases versus satellite altimeter observations.
+- Traditional univariate bias correction (e.g., Quantile Mapping) can match distributions but often ignores spatial/seasonal structure and assumes stationarity of bias.
+
+Objectives:
+- Quantify uncertainty in raw CMIP6 SWH over the Indian Ocean against satellite altimetry (bias, RMSE, correlation).
+- Build a satellite-guided AI/ML bias-correction model for SWH that captures non-linear and state-dependent bias patterns.
+- Validate correction on unseen years (proxy for future application).
+- Provide a transferable workflow that can be applied to future CMIP6 SSP scenarios for bias-corrected projections.
+
+Literature Review
+
+Traditional Statistical Bias Correction:
+- Quantile Mapping (QM): maps model CDF to observed CDF; strong for distribution matching (including tails when data-rich).
+- Limitations: univariate and grid-point-wise; may break spatial coherence/physical consistency; assumes stationary bias transfer; tail sampling limitations for rare extremes.
+
+Machine Learning Methods:
+- Random Forest (RF):
+  - Lightweight and CPU-friendly; learns non-linear mappings using tabular features.
+  - Requires explicit spatial/temporal covariates (lat/lon/month) to capture regional and seasonal bias.
+  - Strong interpretability (feature importance) but no built-in physical constraints.
+- Deep Learning (CNN/U-Net):
+  - Captures spatial coherence and multi-scale patterns; can use multichannel inputs.
+  - High compute cost, data-hungry; risk of poor generalization under distribution shift (“gray swan” rare events).
+
+Hybrid / Physics-Informed Directions (motivation for future work):
+- Hybrid QM + RF/ML: use QM for tail distribution alignment and ML for spatiotemporal structure.
+- Physics-informed ML (PIML/PINNs): embed physical constraints (e.g., conservation laws) to improve robustness and physical consistency.
+
+Methodology
+
+Datasets:
+- Model (CMIP6 proxy): `cowcliphs.nc`
+  - Monthly SWH, ~0.5° grid.
+  - Initial grid points: 151,200; valid ocean samples after masking/NaNs: 85,796.
+- Observations (satellite altimetry): `io-altimeter.nc`
+  - Daily mean SWH, 2.0° grid; used as reference “truth”.
+- Period analyzed: Jan 2015 – Dec 2020.
+
+Preprocessing:
+- Harmonize coordinate names and units.
+- Align time period and compute monthly means.
+- Regrid CMIP6 proxy to the 2.0° observational grid (bilinear interpolation).
+
+Features and Targets (tabular learning):
+- Features: `model_swh`, `lat`, `lon`, `month` (1–12).
+- Target: `obs_swh` (altimeter SWH).
+
+Train/Test Protocol (temporal split):
+- Train: 2015–2018 (57,228 samples).
+- Test: 2019–2020 (28,568 samples), simulating “future/unseen”.
+
+Model:
+- RandomForestRegressor (n_estimators=50, max_depth=10, random_state=42).
+- Output: bias-corrected SWH prediction consistent with satellite reference during overlap period.
+- Persist model artifact: `swh_correction_model.pkl`.
+
+Evaluation Metrics:
+- Bias (mean error), RMSE, temporal correlation, and \(R^2\) for corrected predictions on test period.
+
+Work Done and Results
+
+Raw (Uncorrected) CMIP6 Proxy vs Satellite (2015–2020):
+- Mean Bias: +0.1349 m (systematic overestimation).
+- Mean RMSE: 0.5142 m.
+- Mean temporal correlation: 0.6916.
+- Strong spatial heterogeneity; notable biases reported in:
+  - Arabian Sea: +0.24 m
+  - Bay of Bengal: +0.18 m
+  - Southern Ocean: +0.31 m
+
+AI/ML Correction Performance (Test: 2019–2020):
+- RMSE: 0.6103 m → 0.4080 m (33.2% reduction).
+- Bias: +0.1788 m → −0.0130 m (~93% reduction).
+- \(R^2\) (corrected): 0.8798.
+
+Interpretation / Key Takeaways:
+- RF learns spatial + seasonal bias patterns using lat/lon/month.
+- Correction tightens raw-vs-obs scatter around 1:1 line and reduces systematic offset.
+- Diagnostic plots available in `plots/` (e.g., bias maps, time series, distribution diagnostics, ML diagnostics).
+
+Work Proposed During the Next Year
+
+Phase 2 / Extensions:
+- Extend validation to longer altimeter records (e.g., 1992–2024 where available) to assess decadal variability and robustness.
+- Improve tail/extremes handling:
+  - Hybrid QM + RF approach (QM for tails, RF for mean/spatiotemporal structure).
+  - Regime-based models (separate models by SWH bins or season) for rare-event performance.
+
+Model and Feature Enhancements:
+- Add physically relevant covariates (if available): wind speed, pressure, SST, climate indices (ENSO/IOD) to improve non-stationary generalization.
+- Multi-model correction: calibrate per CMIP6 model/member and develop ensemble weighting based on regional skill.
+
+Broader Scope:
+- Extend framework to Sea Level Anomaly (SLA) correction with uncertainty-aware models (e.g., QRNN/DeepAR) where appropriate.
+- Explore physics-informed constraints (PIML/PINNs) for better physical consistency and out-of-distribution stability.
+
+Deployment:
+- Automate pipeline for operational use (e.g., MOSDAC integration) and produce bias-corrected SSP scenario products.
+
+Conclusion
+
+Summary:
+- CMIP6 proxy SWH over the Indian Ocean exhibits systematic positive bias and spatially structured errors relative to satellite altimetry.
+- A satellite-guided Random Forest bias correction using simple covariates (SWH, lat, lon, month) substantially improves accuracy on unseen years.
+- The workflow is computationally efficient, reproducible, and transferable to future scenario applications.
+
+Key Deliverables:
+- Trained model: `swh_correction_model.pkl`.
+- Reproducible scripts and plots in `plots/` supporting diagnostics and evaluation.
+
+References
+
+Key References Mentioned in the Notes:
+- Quantile mapping and wave-climate bias correction literature (QM/QDM, stationarity issues).
+- ML bias correction literature (RF, CNN/U-Net; extreme-event generalization concerns).
+- Dataset references for CMIP6-derived wave climate products (e.g., Patra et al. 2023; Meucci et al. 2024).
+

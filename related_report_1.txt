@@ -1,0 +1,138 @@
+Advanced Computational Strategies for the Bias Correction of Global Wave Climate Projections: From Quantile Mapping to Random Forest Post-Processing
+The Imperative for Bias Correction in Global Wave Climate Projections
+The assessment of ocean wave climate is a fundamental component of understanding coastal hazards, including inundation, extreme erosion, and the long-term sustainability of maritime infrastructure.1 As global temperatures rise, the modulation of atmospheric circulation patterns—such as the poleward displacement of storm tracks and changes in the frequency of atmospheric blocking—directly impacts the generation and propagation of wind waves.2 To quantify these impacts, the scientific community relies on ensembles of Global Circulation Models (GCMs) and their successor Earth System Models (ESMs), such as those participating in the Coupled Model Intercomparison Project Phase 6 (CMIP6). However, despite the increasing complexity of these models, the simulated significant wave height (SWH) and related parameters often exhibit systematic biases when compared against reference datasets like reanalyses (e.g., ERA5) or satellite altimetry.1
+These biases arise from several distinct sources: the relatively coarse spatial resolution of GCMs, which limits their ability to capture local or regional wind systems; simplified numerical representations of wave physics; and inherited errors from the atmospheric forcing variables, particularly the near-surface wind speed.4 The necessity of mitigating these systematic errors is underscored by the disproportionate impact that wave climate extremes have on coastal processes.1 Without rigorous bias correction, projections of future wave climates may fail to provide the accuracy required for effective coastal planning and risk mitigation strategies.5
+Historically, bias correction (BC) in climate studies has evolved from simple delta-change methods to sophisticated quantile-based mapping techniques.1 Recently, the paradigm has shifted toward machine learning (ML) post-processing, where models like Random Forest (RF) are employed to learn the complex, non-linear relationships between model predictors and observed "ground truth" data.6 This report provides an exhaustive analysis of the methodologies used to correct SWH biases, focusing on the transition from empirical quantile mapping to advanced ML-driven post-processing frameworks.
+Systematic Error Profiles in Wave Climate Modeling
+The modeling chain for wave climate projections typically involves forcing a spectral wave model, such as the Wave Model (WAM) or Simulating Waves Nearshore (SWAN), with wind fields derived from GCMs.4 Inherent uncertainties cascade through this process, originating in the atmospheric forcing and compounded by the wave model’s internal dynamics.9
+Sources of Model Uncertainty and Bias
+Uncertainty in wave projections can be categorized into four primary streams: the choice of greenhouse gas emission scenarios (e.g., SSP or RCP scenarios), the specific GCM used to derive offshore wave conditions, the wave transformation models applied in nearshore zones, and the non-linear interactions between these components.9 Research indicates that GCM-driven offshore wave datasets often constitute the largest source of uncertainty, frequently outweighing the uncertainty attributed to emission scenarios in the mid-to-short term.9
+The systematic biases identified in SWH simulations are often non-stationary, although standard BC methods typically assume that the statistical properties of current climate biases will persist in future scenarios.1 This stationarity assumption is critical for the application of calibration factors derived from historical periods (e.g., 1979–2005) to end-of-century projections (e.g., 2081–2100).1
+The Role of Reference Datasets
+To calibrate and validate BC models, a robust reference dataset is required. Common choices include:
+Numerical Reanalyses: Datasets like ERA5 and GOW2 (Global Ocean Waves 2) provide consistent, long-term historical records of global wave parameters.1
+Satellite Altimetry: SWH measurements from satellite constellations (e.g., Jason, Sentinel-3) offer direct observations that are often considered the closest approximation to the "ground truth" for offshore wave heights.12
+In-situ Observations: Buoy networks provide high-fidelity point measurements but are often spatially sparse, particularly in open-ocean or high-latitude regions.2
+Analysis of Baseline Methodologies: Lemos et al. and the Quantile Mapping Framework
+The seminal work by Lemos et al. (2020a, 2020b) serves as a primary foundation for understanding the necessity and mechanics of bias correction in wave climate studies.1 Their research emphasizes that systematic biases in SWH simulations are not merely offsets but complex distributional errors that vary across the frequency spectrum of wave events.1
+The Mechanics of Empirical Quantile Mapping (EQM)
+The EQM method is a distribution-based approach that seeks to align the cumulative distribution functions (CDFs) of a model output with those of a reference dataset.1 Mathematically, for a simulated value $x_{sim}$, the corrected value $x_{cor}$ is obtained as:
+
+
+$$x_{cor} = F_{ref}^{-1}(F_{sim}(x_{sim}))$$
+
+where $F_{sim}$ represents the CDF of the historical simulation and $F_{ref}^{-1}$ is the inverse CDF (quantile function) of the reference data.3 This transformation ensures that the statistical properties of the corrected dataset, such as the mean, variance, and skewness, are identical to the reference dataset during the calibration period.3
+The Importance of Extreme Values: Empirical Gumbel Quantile Mapping (EGQM)
+A critical insight from the Lemos et al. research is that standard EQM often fails to adequately represent the extreme tails of the SWH distribution, which are governed by the physics of storm events and extreme wind speeds.1 To address this, EGQM utilizes the Gumbel distribution—a specific form of the Generalized Extreme Value (GEV) distribution—to model the upper quantiles.5 By specifically fitting the tail to a Gumbel distribution, EGQM provides a more robust correction for 50-year or 100-year return level events, which are essential for engineering design and coastal defense planning.3
+Findings from the Lemos et al. Study
+The investigation into an 8-member dynamic multi-forcing global wave climate ensemble for the 2081–2100 period under the RCP 8.5 scenario revealed significant implications for climate change assessment.1 The application of BC techniques was found to be relevant not only for adjusting the ensemble mean but also for modifying the magnitude of the ensemble spread.1 Specifically, the correction process highlighted that the magnitude of original projected changes in SWH generally increased after bias correction was applied.3
+Feature
+EQM (Empirical Quantile Mapping)
+EGQM (Empirical Gumbel Quantile Mapping)
+Primary Goal
+General bias reduction across all quantiles
+Robust characterization of extremes
+Distribution Type
+Non-parametric (empirical)
+Parametric tail (Gumbel)
+Linearity
+Corrects linear variables (SWH, Period)
+Corrects linear variables (SWH)
+Application
+Mean state and moderate events
+Storm events and return levels
+Performance
+High for 50th percentile
+Superior for 90th+ percentiles
+
+1
+Machine Learning Post-Processing: Framing the Methodology
+While traditional statistical methods like EQM are effective, they are inherently univariate and rely on a strict stationarity assumption.1 The second core paper of interest, focusing on ML post-processing of ECMWF wave height forecasts, introduces a paradigm shift by utilizing non-linear models to resolve systematic errors.17
+Post-Processing vs. Direct Forecasting
+In the context of the ECMWF system, post-processing is defined as the application of a correction function to the output of a Numerical Weather Prediction (NWP) model to ensure the result fits observed weather data.17 Unlike direct data-driven forecasting, which ignores underlying physics, ML post-processing acts as a "hybrid" layer that corrects for errors in model physics, horizontal resolution, and parameterizations.6
+Random Forest (RF) as a Post-Processing Engine
+Random Forest is a highly effective tool for this task because it handles non-linear interactions between multiple input features without requiring explicit assumptions about the distribution of errors.6 In an RF configuration, the model is trained to estimate the residual error ($\epsilon$) between the simulated wave height ($H_{sim}$) and the actual observed height ($H_{obs}$), such that:
+
+
+$$H_{obs} = H_{sim} + \epsilon(f_1, f_2,..., f_n)$$
+
+where $f_n$ are features like wind speed, atmospheric pressure, and spatial metadata.6
+Feature Engineering for Wave Height Correction
+The selection of features is critical for framing the methodology. Successful models often incorporate:
+Direct Model Output: The raw significant wave height and wave period from the GCM or regional model.6
+Wind Forcing Variables: Near-surface wind speed ($u_{10}, v_{10}$), which is the primary driver of wave growth.14
+Regional Context: Bathymetry, distance to the shoreline, and neighboring grid point values to account for spatial correlations.7
+Temporal Indices: Month of the year or seasonal components to capture the intra-annual variability of wave climates.3
+Expected Skill Gains and Performance Analysis
+The transition to ML post-processing is motivated by the potential for significant skill gains over raw numerical models and traditional statistical baselines.17
+Quantification of Improvements
+Research on ECMWF and GFS forecasts indicates that ML-based post-processing can reduce errors by substantial margins.17 For example, studies using Artificial Neural Networks (ANNs) for precipitation post-processing showed skill improvements of 2%–11%, with bias reduced to less than 2% in some cases.17 In oceanic scenarios, specifically the Santos Channel, Random Forest models achieved a reduction of 11.9% in RMSE and a 38.7% reduction in bias for sea surface height and current velocity.6
+
+Metric
+Raw Numerical Model
+ML Corrected (RF/ANN)
+Reported Gain/Change
+RMSE (SWH/SSH)
+Baseline
+Reduced by ~11.9%
+Significant error mitigation 6
+Bias
+Systematic offset
+Reduced by ~38.7%
+Improved distributional fit 6
+Accuracy (R²)
+Variable
+Up to 99.8%
+SVM for extreme waves 14
+MAE (Wind)
+2.095 m/s
+0.94 m/s
+62% improvement at 5h lead 19
+
+6
+Where Machine Learning Helps Most
+The utility of ML is not uniform across all sea states. The evidence suggests that ML post-processing is particularly advantageous in the following contexts:
+Extreme Events: Deep learning models significantly outperform raw ensembles and conventional methods (like EMOS) for extreme events, such as those exceeding the 50 mm/day precipitation threshold or high-energy storm waves.21
+Complex Terrain and Coastal Zones: In regions with complex bathymetry or orography, ML can learn local patterns that coarse-resolution GCMs cannot resolve.19
+Specific Atmospheric Regimes: Random Forest algorithms have been shown to specifically increase forecast skill during low-level jet conditions or tropical cyclones where model physics may be inadequate.7
+Short-Term Lead Times: Skill gains are most pronounced in the early medium range (Day 1–7), though improvements have been noted even for week-two hazard outlooks.18
+Integrating Satellite Altimetry for CMIP6 Bias Correction
+The use of satellite altimeter data as a reference for bias-correcting CMIP6 projections aligns with modern requirements for global spatial coverage and high-fidelity "ground truth" observations.12 Altimetry provides direct measurements of SWH that are often equivalent to or superior to buoy data in offshore regions where buoy networks are sparse.13
+The Data Fusion Mechanism
+By training a Random Forest model on the overlap between satellite observations and the historical CMIP6 simulations, the model can learn the geographically varying biases of each GCM within the CMIP6 ensemble.1 This is particularly relevant for correcting the Southern Ocean wave heights, where GCMs historically exhibit high uncertainty.3
+Resolving Multi-Model Uncertainty
+The CMIP6 ensemble inherently contains model-driven uncertainty.9 ML post-processing can serve as a sophisticated weighting or ensemble-averaging tool, where the Random Forest identifies which GCMs perform best under specific environmental conditions (e.g., high-wind regimes or specific swell directions) and weighs their contributions accordingly to produce a more accurate "consensus" projection.6
+Comparisons and Synthesis of Findings
+Comparing the non-ML baselines (EQM/EGQM) from Paper 4 against the ML methodologies from Paper 8 reveals a clear evolutionary trajectory in the field.1
+EQM/EGQM vs. Random Forest
+While EQM and EGQM are effective at matching distributions, they are static and do not account for the state-dependent nature of errors.1 For instance, a model may over-predict wave height only when winds are from the North. EQM would apply the same correction factor regardless of wind direction, whereas a Random Forest incorporating "wind direction" as a feature can apply a targeted correction.1
+Future Outlook and Research Directions
+The current frontier in wave climate research involves moving beyond scalar parameters to correct the full 2D directional wave spectrum.5 This approach, exemplified by the SEGDM-month method, preserves the integrated wave energy and accounts for frequency and directional shifts that may occur due to climate change.5 Furthermore, the introduction of physics-informed machine learning (PIML) architectures is expected to mitigate the risks associated with the non-stationarity of biases, ensuring that ML corrections remain physically plausible even in an end-of-century climate that differs significantly from the present.6
+Conclusion
+The integration of Random Forest post-processing into the CMIP6 wave climate modeling chain represents a robust solution to the persistent problem of systematic model bias.1 By leveraging satellite altimetry as a high-precision reference, these ML models can capture complex, non-linear error patterns that traditional quantile mapping techniques overlook.14 The evidence from both seminal bias-correction studies and operational forecasting centers underscores that such corrections are not merely optional adjustments but essential requirements for providing accurate, high-resolution assessments of future coastal risk.1 The resulting improvements in RMSE and bias reduction directly translate to more reliable projections of extreme wave events, ensuring that the scientific community can better anticipate the impacts of a changing ocean climate.3
+Works cited
+On the need of bias correction methods for wave climate projections - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/338173856_On_the_need_of_bias_correction_methods_for_wave_climate_projections
+ulsd737083_td_Gil_Lemos.pdf.txt - Universidade de Lisboa, accessed on December 18, 2025, https://repositorio.ulisboa.pt/bitstream/10451/50396/2/ulsd737083_td_Gil_Lemos.pdf.txt
+Bias corrected CMIP5-Derived Single-Forcing Future Wind-Wave Climate Projections towards the End of the 21st Century - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/343654245_Bias_corrected_CMIP5-Derived_Single-Forcing_Future_Wind-Wave_Climate_Projections_towards_the_End_of_the_21st_Century
+Dynamical Projections of the Mean and Extreme Wave Climate in the Bohai Sea, Yellow Sea and East China Sea - Frontiers, accessed on December 18, 2025, https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.844113/full
+Ocean wave spectrum bias correction through energy conservation for climate change impacts - OS, accessed on December 18, 2025, https://os.copernicus.org/articles/21/767/2025/
+(PDF) Enhancing Oceanic Variables Forecast in the Santos Channel by Estimating Model Error with Random Forests - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/362694218_Enhancing_Oceanic_Variables_Forecast_in_the_Santos_Channel_by_Estimating_Model_Error_with_Random_Forests
+(PDF) The smoother the better? A comparison of six post-processing methods to improve short-term offshore wind power forecasts in the Baltic Sea - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/354635811_The_smoother_the_better_A_comparison_of_six_post-processing_methods_to_improve_short-term_offshore_wind_power_forecasts_in_the_Baltic_Sea
+Bias-Corrected CMIP5-Derived Single-Forcing Future Wind-Wave Climate Projections toward the End of the Twenty-First Century - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/343654245_Bias-Corrected_CMIP5-Derived_Single-Forcing_Future_Wind-Wave_Climate_Projections_toward_the_End_of_the_Twenty-First_Century
+Uncertainties in the Projected Patterns of Wave-Driven Longshore Sediment Transport Along a Non-straight Coastline - Frontiers, accessed on December 18, 2025, https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.832193/full
+Uncertainties in the projected patterns of wave-driven longshore sediment transport along a non-straight coastline, accessed on December 18, 2025, https://ro.ecu.edu.au/cgi/viewcontent.cgi?article=1588&context=ecuworks2022-2026
+Bias-Corrected CMIP5-Derived Single-Forcing Future Wind-Wave Climate Projections toward the End of the Twenty-First Century in - AMS Journals, accessed on December 18, 2025, https://journals.ametsoc.org/view/journals/apme/59/9/jamcD190297.xml
+UIFCW 2023 – Abstracts - Earth Prediction Innovation Center - NOAA, accessed on December 18, 2025, https://epic.noaa.gov/uifcw-2023-abstracts/
+An innovative deep learning-based approach for significant wave height forecasting | Request PDF - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/389789045_An_innovative_deep_learning-based_approach_for_significant_wave_height_forecasting
+Prediction of significant wave height using machine learning and its application to extreme wave analysis - Indian Academy of Sciences, accessed on December 18, 2025, https://www.ias.ac.in/article/fulltext/jess/132/00/0051
+Ocean wave spectrum bias correction through energy conservation for climate change impacts - OS, accessed on December 18, 2025, https://os.copernicus.org/articles/21/767/2025/os-21-767-2025.pdf
+A full wind bivariate bias correction method - R Discovery - Researcher.Life, accessed on December 18, 2025, https://discovery.researcher.life/article/a-full-wind-bivariate-bias-correction-method/15996cbc504f3baca02f58ce1c3d1973
+Post-Processing of NWP Precipitation Forecasts using Deep Learning - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/368273845_Post-Processing_of_NWP_Precipitation_Forecasts_using_Deep_Learning
+A Machine Learning Outlook: Post-processing of Global Medium-range Forecasts, accessed on December 18, 2025, https://www.researchgate.net/publication/369623359_A_Machine_Learning_Outlook_Post-processing_of_Global_Medium-range_Forecasts
+Flowchart of the artificial intelligence (AI) model used to correct WRF-predicted wind speeds in the two main experimental pathways. - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/figure/Flowchart-of-the-artificial-intelligence-AI-model-used-to-correct-WRF-predicted-wind_fig2_375229172
+Data fusion of complementary data sources using Machine Learning enables higher accuracy Solar Resource Maps | Request PDF - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/390380807_Data_fusion_of_complementary_data_sources_using_Machine_Learning_enables_higher_accuracy_Solar_Resource_Maps
+Enhanced Typhoon Track Prediction: A Deep Learning Approach for the Northwestern Pacific - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/394970675_Enhanced_Typhoon_Track_Prediction_A_Deep_Learning_Approach_for_the_Northwestern_Pacific
+Machine learning bias correction and downscaling of urban heatwave temperature predictions from kilometre to hectometre scale - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/publication/380641595_Machine_learning_bias_correction_and_downscaling_of_urban_heatwave_temperature_predictions_from_kilometre_to_hectometre_scale
+Probabilistic wave forecast for week two and beyond based on NOAA's Global Ensemble Forecast System - AMS Journals, accessed on December 18, 2025, https://journals.ametsoc.org/view/journals/wefo/aop/WAF-D-24-0154.1/WAF-D-24-0154.1.pdf
+Forecast performance 2024 - ECMWF, accessed on December 18, 2025, https://www.ecmwf.int/en/newsletter/182/news/forecast-performance-2024
+Gil LEMOS | Researcher | PhD | University of Lisbon, Lisbon | UL | Research profile - ResearchGate, accessed on December 18, 2025, https://www.researchgate.net/profile/Gil-Lemos-2

@@ -1,0 +1,520 @@
+1. Introduction
+Sea surface waves alter sea surface roughness and surface winds and influence the exchange of mass, momentum, and heat at the air-sea interface (Hwang, 2011). Huge waves under extreme wind conditions usually cause
+severe coastal and ship disasters, which have led to thousands of deaths and extensive property losses in the past
+two decades (Chang & Mori, 2021; Möller et al., 2008). Therefore, providing accurate wave height forecasts is
+necessary and urgent (Alves et al., 2013). However, significant bias still exist in numerical wave models (Campos
+et al., 2018, 2019) due mainly to simplified physical processes, inaccurate initial conditions, and limited grid
+resolution (Cannon, 2018; Giorgi & Bi, 2000; Hack et al., 2006). Bias correction was proposed to mitigate the
+bias in numerical models to fit the observations better (Soriano et al., 2019). Bias correction techniques for results
+from numerical models include linear regression, quantile mapping, cumulative distribution functions, Kalman
+filter, and so on (Erickson et al., 2012; Kalman, 1960; Li, Feng, et al., 2019; Thrasher et al., 2012).
+Driven by big data and the improvement of computing power, machine learning, especially deep learning, has
+developed rapidly in recent years and has been applied to many different fields. Recently, machine learning has
+been applied to model output statistics, bias correction, and statistical downscaling, providing new ideas and
+methods for weather forecasts (Guan, 2020; Li, Yu et al., 2019; O’Donncha et al., 2018; Rasp & Lerch, 2018;
+Reichstein et  al., 2019; Vandal et  al., 2018). Significant wave height (SWH), the average wave height (from
+trough to crest) of the highest one-third of the waves, is often used to represent the size of swell and wind
+waves in wave models. Machine learning can effectively identify and reduce the bias in SWH nowcast and
+reconstruction (Alexandre et  al.,  2015; Guan,  2020; O’Donncha et  al.,  2018). Ellenson et  al.  (2020) used a
+bagged regression tree to correct the SWH bias forecasted by WAVEWATCH3 (WW3) for five stations along the
+California-Oregon border in the United States. They reduced the SWH Root Mean Squared Errors (RMSEs) from
+0.33 to 0.29 m in summer and from 0.58 to 0.48 m in winter. Note the performance improvement in predicting
+Abstract Ocean waves, especially extreme waves, are vital for air-sea interaction and shipping. However,
+current wave models still have significant biases. Based on a numerical wave model and a deep learning model,
+a BU-Net by adding batch normalization layers to a U-Net, we accurately predict the significant wave height
+(SWH) of the Northwest Pacific Ocean. For each day in 2017–2021, we conducted a 3-day hindcast experiment
+using WAVEWATCH3 (WW3) to obtain the SWH forecasts at lead times of 24, 48, and 72 hr, forced by GFS
+real-time forecast surface winds. After using BU-Net, the mean Root Mean Squared Errors (RMSEs) of the
+SWH forecast from WW3 at lead times of 24, 48, and 72 hr are reduced by 40%, 38%, and 30%, respectively.
+During typhoon passages, the drop percentages of RMSEs all exceed 20% for three lead times. Therefore,
+combining numerical models and deep learning is very promising in wave forecasting.
+Plain Language Summary Data-driven deep learning is widely used in geoscience. A new deep
+learning bias correction method, BU-Net, is proposed to correct the significant wave height forecast over the
+Northwest Pacific Ocean. It is demonstrated that BU-Net improves the forecast performance over four seasons
+and performs well under extreme weather conditions such as typhoons. This new deep learning bias correction
+method provides a successful approach that can also be applied to the routine forecast of other atmospheric and
+ocean phenomena in future.
+SUN ET AL.
+© 2022. The Authors.
+This is an open access article under
+the terms of the Creative Commons
+Attribution-NonCommercial-NoDerivs
+License, which permits use and
+distribution in any medium, provided the
+original work is properly cited, the use is
+non-commercial and no modifications or
+adaptations are made.
+A Deep Learning-Based Bias Correction Method for
+Predicting Ocean Surface Waves in the Northwest Pacific
+Ocean
+Danyi Sun1
+, Wenyu Huang1 , Yong Luo1 , Jingjia Luo2 , Jonathon S. Wright1 ,
+Haohuan Fu1 , and Bin Wang1
+1
+Ministry of Education Key Laboratory for Earth System Modeling, and Department of Earth System Science (DESS),
+Tsinghua University, Beijing, China, 2
+Institute for Climate and Application Research (ICAR)/CIC-FEMD/KLME/ILCEC,
+Nanjing University of Information Science and Technology, Nanjing, China
+Key Points:
+• We provide a predicting scheme for
+significant wave height by combining
+a numerical wave model and a deep
+learning model
+• The BU-Net bias correction model
+significantly improves the forecast
+performance of WW3
+• The predicting scheme improves the
+forecast performance during typhoon
+passages
+Supporting Information:
+Supporting Information may be found in
+the online version of this article.
+Correspondence to:
+W. Huang,
+huangwenyu@mail.tsinghua.edu.cn
+Citation:
+Sun, D., Huang, W., Luo, Y., Luo,
+J., Wright, J. S., Fu, H., & Wang, B.
+(2022). A deep learning-based bias
+correction method for predicting ocean
+surface waves in the Northwest Pacific
+Ocean. Geophysical Research Letters,
+49, e2022GL100916. https://doi.
+org/10.1029/2022GL100916
+Received 23 AUG 2022
+Accepted 30 NOV 2022
+10.1029/2022GL100916
+RESEARCH LETTER
+1 of 11
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+2 of 11
+SWH is significant in winter (p = 0.0) but insignificant in summer (p = 0.54). Campos et al. (2020) used a multilayer perceptron model to correct the bias of the wave ensemble forecast of NCEP. The day-10 forecasts after
+the correction have the same normalized RMSE as the day-8 forecasts without correction. There are also studies
+using machine learning or deep learning methods to predict the SWH directly. Band et al. (2020) demonstrated
+that the performance of machine learning is comparable to the numerical wave models in 6-hr SWH forecasts for
+two ports in the Persian Gulf. Chen et al. (2021) imposed a wavelet graph neural network (WGNN) for a 1-hr forecast of SWH at a single station in the middle of the Taiwan Strait. The RMSE of WGNN is 0.12 m, much smaller
+than the 0.30 m predicted by WW3. However, using machine learning or deep learning to predict SWH without
+numerical wave models is mainly applied to SWH forecast in a relatively short time period (usually within several
+hours). Using numerical wave models together with machine learning or deep learning is still essential to provide
+accurate wave forecasts.
+In addition to forecasts at buoy stations, the bias correction based on convolutional neural networks (CNN) facilitates the spatial correction and grid predictions by extracting the spatial connections and dependences (Deshmukh
+et al., 2016; Han et al., 2021; Lecun et al., 1998; F. Wang & Tian, 2022). CNN is one of the most extensively
+implemented deep learning algorithms and is often used in image segmentation, target detection, image denoising, and image super-resolution (Dong et al., 2014; He et al., 2016; Long et al., 2015; Zhang et al., 2017). CNN
+has powerful image processing capabilities that can obtain abstract features from massive high-dimensional
+geospatial data. Bias correction can be viewed as image segmentation, typically transforming an input image into
+another. Therefore, CNN has become a valuable candidate for bias correction and forecasts. Han et al. (2021)
+corrected the 2-m temperature, 2-m relative humidity, 10-m wind speed, and 10-m wind direction in northeastern
+China from ECMWF-IFS data sets using a deep learning method called correction U-Net (CU-Net). U-Net, one
+of the fully convolutional networks, is the simplest but most successful method in image segmentation (Siddique
+et al., 2021). It is an encoder-decoder model with a skip connection consisting of downsampling and upsampling
+processes, resulting in a U-shaped architecture. CU-Net outperforms the anomaly numerical correction method,
+which demonstrates the advantages of U-Net (Ronneberger et al., 2015). F. Wang and Tian (2022) used the Super
+Resolution Deep Residual Network (SRDRN), which is mainly composed of residual blocks and upsampling
+blocks with CNN and batch normalization (BN) layers (Ioffe & Szegedy, 2015), to correct the temperature of the
+southern parts of the United States and the Gulf of Mexico from 20 state-of-the-art coupled general circulation
+models. The SRDRN could reduce the RMSE by about 8%–20%, while the standard quantile delta mapping
+(QDM) approach only reduced the RMSE by 0.6%–11%.
+The Northwest Pacific Ocean (NWPO) is one region with frequent human activities. The NWPO region has a
+typical monsoon climate. The average wind speed at the sea surface in the region has an apparent seasonal cycle.
+Within the NWPO region, extreme winds frequently occur in the South China Sea, the Taiwan Strait, and the
+seas east of Japan (Ding & Liu, 2008). The upper ocean circulation in NWPO is dominated by the Kuroshio
+current, which is a powerful western boundary current that transports warm equatorial water poleward (Mizuno
+& White, 1983). In particular, this region suffers from intense typhoons and huge sea surface waves (Chu, 2004;
+B. Wang et al., 2010, 2013). A few studies were devoted to correcting the SWH products from numerical wave
+models (Ellenson et al., 2020; Lemos et al., 2020; O’Donncha et al., 2018). However, there is still a lack of using
+the spatial bias correction method to correct bias in the SWH forecast of NWPO from numerical wave models.
+In this study, we propose a deep learning-based bias correction method, that is, BU-Net, by inserting BN layers
+into the U-Net, for correcting SWH in NWPO from WW3. BN improves the correction performance of U-Net. In
+particular, we have used wind forcing, wave direction, and wave period to train BU-Net. The BU-Net successfully
+considers spatial connections and dependencies among meteorological variables and wave parameters. For lead
+times of 24, 48, and 72 hr, we construct three independent BU-Nets for them.
+The rest of this paper is organized as follows. Data and methods are described in Section 2. Section 3 presents
+the results of the new bias correction method. Finally, Section 4 provides the summary and concluding remarks.
+2. Data and Methods
+2.1. WW3 Experiments
+WW3 version 6.07.1, the third-generation wave model developed at NOAA/NCEP, is adopted to provide hindcast
+results of SWH. WW3 is a spectral wave model that solves the random phase spectral action density balance
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+3 of 11
+equation for wavenumber-direction spectra. In particular, we use a global version of WW3 with a horizontal
+resolution of 0.25° × 0.25°. Our study area (NWPO) is 22°N−42°N, 117°E−137°E including the Bohai Sea,
+the Yellow Sea, and the East China Sea. Note that there are 80 grid points in both the zonal and meridional
+directions of the study area. For each day in 2017–2021, a 3-day hindcast experiment is conducted to provide
+24, 48, and 72 hr forecasts of SWH. Each hindcast experiment is initialized at time T0 using the restart files at
+time T0 of a previous 3-day (T0−48 hr to T0+24 hr) hindcast experiment. For example, the restart files at 00:00
+UTC on 3 January 2017 of the experiment starting from 1 January 2017, recorded as the model state at 00:00
+UTC on 3 January 2017, are used as the initial conditions of the experiment on 3 January 2017. Forcing in
+the upper boundary for WW3 is 6-hourly surface winds from NCEP-GFS (Global Forecast System, National
+Centers for Environmental Prediction, National Weather Service, NOAA, U.S. Department of Commerce, 2015)
+routine forecast. The WW3 model adopts the input-dissipation parameterization with the switch ST4 developed
+by Ardhuin et al. (2010). The nonlinear wave-wave interactions in the wave model are represented by the discrete
+interaction approximation (Hasselmann et al., 1985). The WW3 uses the Showex parameterization for the bottom
+friction (Ardhuin et al., 2003) and the Battjes-Janssen parameterization for the depth-induced wave-breaking
+(Battjes & Janssen, 1978).
+Six output variables, including SWH, U (zonal wind), V (meridional wind), T (mean wave period), Ds
+ (sine of
+mean wave direction), and Dc (cosine of mean wave direction) from WW3 (Table S1 in Supporting Information S1), are served as inputs of the bias correction model. Note that, to avoid the discontinuity at 0° and 360°, the
+mean wave direction is transformed to Ds
+ and Dc.
+2.2. BU-Net Architecture
+The bias correction model is the BU-Net, by adding BN layers to the U-Net proposed by Ronneberger et al. (2015).
+The BU-Net differs from U-Net in two aspects: (a) A BN layer is included between each convolutional layer and
+the ReLU activation function in the Convolutional Block (Conv-Block). BN confines the variance of input data to
+a specific range so that the latter layer does not need to constantly adapt to the input changes, allowing each layer
+to learn independently, helping the neutral network become faster and more stable. (b) Using the same padding
+method in the convolutional layer ensures the same input and output sizes, which is necessary for bias correction.
+Figure 1 shows the structure and the data flow of BU-Net. The size of an input image is (80, 80, 6), representing
+the width of 80, the height of 80, and 6 channels. Six channels represent the input features, that is, the six output
+variables from WW3 (Table S1 in Supporting Information S1). The basic module of BU-Net is the Conv-Block,
+which consists of a 3 × 3 two-dimensional convolutional layer, a BN layer, and a ReLU activate function. The
+length and width of the input and output of Conv-Block remain unchanged, and the number of convolution
+kernels determines the number of output channels. The five encoding processes on the left continuously compress
+the length and width of the feature map, enhancing higher-order features. After going through the decoding
+processes on the right, including upsampling and skipping connection, we can obtain a feature map of (80, 80,
+64) and then reduce the channel to 1 through a 1 × 1 convolutional layer as the output of the model. We use the
+mean squared error (Equation 1) as the loss function of the BU-Net. To prevent the results from being influenced
+by the land points with no waves, we assign a weight of 0 to each land point when calculating the loss function.
+The calculating formula of the loss function is:
+𝑙𝑙𝑙𝑙𝑙𝑙𝑙𝑙𝑀𝑀𝑀𝑀𝑀𝑀 = ∑𝑁𝑁
+𝑖𝑖=1
+𝛼𝛼𝑖𝑖(̂𝑦𝑦𝑖𝑖 − 𝑦𝑦𝑖𝑖)
+2
+∕
+∑𝑁𝑁
+𝑖𝑖=1
+𝛼𝛼𝑖𝑖 (1)
+where i is the index for the grid points, N is the total number of grid points, αi
+ is the weight denoting ocean or
+land points, yi
+ is the ground truth, and 𝐴𝐴 𝐴𝐴𝐴𝑖𝑖 is the estimated value. Note that αi
+ = 1 at ocean points and αi
+ = 0 at land
+points.
+2.3. WW3-BU-Net Model for Predicting SWH
+The WW3-BU-Net model for predicting SWH includes WW3 forecast and BU-Net-based bias correction. The
+maximal time step of WW3 experiments is 3,600 s, while the six output variables at 00:00 UTC of each day are
+used for bias correction. Meanwhile, the significant height of combined wind waves and swell data at 00:00 UTC
+of each day from ERA5 (Hersbach et al., 2018) is viewed as the ground truth of the bias correction module. We
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+4 of 11
+do not use the satellite measurements as the ground truth because the gridded satellite product (WAVE_GLO_
+WAV_L4_SWH_NRT_OBSERVATIONS_014_003 from Copernicus Marine Environment Monitoring Service,
+Mertz et al., 2019) available to us has a resolution of 2° × 2°, which is too coarse for bias correction since the
+resolution of WW3 is 0.25° × 0.25°. Hence, we have to adopt the ERA5 reanalysis as the ground truth, but we
+use the satellite measurements to verify the BU-Net based bias correction model during typhoon passages. The
+original resolution of wave products of ERA5 is 0.36° × 0.36°. The ERA5 wave products are interpolated to a
+grid with a uniform resolution of 0.25° × 0.25° to be consistent with the resolution of WW3. The first 4 years
+(2017–2020) are the training period, and the last year (2021) is the testing period. For three different lead times,
+we construct three independent BU-Nets, that is, BU-24 hr, BU-48 hr, and BU-72 hr. The six output variables
+from WW3 forecasts are normalized separately to remove the influence of scales of different variables on the
+parameters of the neural network. Specifically, we use Z-score standardization for the six variables in BU-24 hr
+and a quantile transformer that maps a variable's probability distribution to the normal distribution for the six
+variables in BU-48 hr and BU-72 hr. In all the three BU-Net models, the epochs and batch size are set to 20 and
+32, respectively.
+3. Results
+3.1. Basic Performance of BU-Net
+In the training period (2017–2020), the area-weighted RMSEs of the WW3 SWH forecast (raw RMSEs) over
+the study region NWPO for the lead times of 24, 48, and 72 hr are 0.31, 0.36, and 0.41 m, respectively (Table S2
+in Supporting Information S1). After using the BU-Net-based bias correction, the RMSEs of the SWH forecast
+at the three lead times during the training period are reduced to 0.19, 0.23, and 0.29 m. The metrics calculated
+using the data set during the testing period are treated as the final performance to better measure the forecast
+performance of BU-Net-based bias correction.
+Figures 2a–2c shows distributions of RMSEs and Pattern Correlation Coefficients (PCCs) of the SWH forecast of the 365 samples in the test period (year 2021). The raw RMSEs of the WW3 SWH forecast for the lead
+times of 24, 48, and 72 hr are 0.35, 0.39, and 0.43 m, respectively (Table S2 in Supporting Information S1).
+Correspondingly, the PCCs are 0.92, 0.90, and 0.87 (Figure  2c). After using the BU-Net-based bias correction, the RMSEs of SWH forecast at the three lead times are 0.21, 0.24, and 0.30 m (Figure 2c and Table S2 in
+Figure 1. BU-Net Architecture. The input data is a 6-channel image with a width of 80 and a height of 80. Each color cube
+represents a feature map with width × height following and the number of channels on the top. The blue arrow stands for the
+Conv-Block, including a 3 × 3 convolution, a batch normalization, and a ReLU activation function in the bottom left module.
+The orange arrow stands for 2 × 2 max pooling, and the green arrow represents up-convolutional operations. The yellow
+arrow represents 1 × 1 convolution. The blue dashed arrow stands for the skip connection, that is, feature concatenation. The
+final output is a single channel image with a width of 80 and a height of 80.
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+5 of 11
+Supporting Information S1), which are comparable to the performance during the training period. Therefore, our
+BU-Net-based bias correction has good generalization ability. Note that the drop percentages in SWH RMSEs of
+the BU-Net-based bias correction with respect to the WW3 forecast are about 40%, 38%, and 30%, respectively,
+for the lead times of 24, 48, and 72 hr. In particular, the SWH RMSEs after BU-Net-based bias correction have
+smaller outlier and more concentrated distributions (Figure 2a), indicating the bias-corrected SWH forecasts have
+good and stable forecast performance. In addition, the PCCs of SWH forecasts after using BU-Net-based bias
+correction increase to 0.95, 0.93, and 0.90, respectively (Figure 2b), corresponding to a PCC increase percentage
+of about 3% for all three lead times.
+The forecast performance of WW3 SWH is seasonally dependent (Table S3 in Supporting Information S1). After
+using BU-Net-based bias correction, RMSEs of SWH forecasts in all four seasons show relatively large improvements (Figures 2d–2f). In particular, the RMSEs during summer have the most considerable improvement, being
+reduced from 0.38, 0.44, and 0.49 m to 0.18, 0.22, and 0.29 m, respectively, for the three different lead times
+(Table S3 in Supporting Information S1). Correspondingly, the drop percentages in summer SWH RMSEs of the
+BU-Net-based bias correction with respect to the WW3 forecast are 53%, 50%, and 41%. Meanwhile, the RMSEs
+Figure 2. Box-and-whisker diagrams summarize the distributions of (a) Root Mean Squared Errors (RMSEs; units: m) and (b) Pattern Correlation Coefficients (PCCs)
+of significant wave height (SWH) between forecasts and ERA5 as a function of the forecast lead time over the Northwest Pacific Ocean during the year 2021. Panel
+(c) is the joint distribution of mean RMSEs and PCCs of SWH. In panel (c), square, circle, and triangle markers represent the forecast lead times of 24, 48, and 72 hr,
+respectively. Panels (d–f) and (g–i) are the distributions of RMSEs and PCCs of SWH in different seasons at forecast lead times of 24, 48, and 72 hr. DJF, MAM, JJA,
+and SON represent winter, spring, summer, and autumn, respectively. In all panels except panel (c), blue boxes (markers) represent WW3, while red boxes (markers)
+represent the BU-Net. The horizontal line across each box and the lower and upper boundaries of the box refer to the median, lower and upper quartiles, respectively.
+The black diamond inside each box refers to the mean value, while the stars represent the outliers.
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+6 of 11
+during winter have the slightest improvement, being reduced from 0.36, 0.38, and 0.42 m to 0.25 , 0.28, and
+0.34 m, respectively, for the three different lead times (Table S3 in Supporting Information S1). Correspondingly,
+the drop percentages in winter SWH RMSEs due to the BU-Net-based bias correction are 31%, 26%, and 19%
+at lead times of 24, 48, and 72 hr, respectively. In addition, the PCCs of SWH forecasts during all four seasons
+after using BU-Net-based bias correction are increased, with an increasing percentage of 2%–6% (Figures 2g–2i).
+Figure 3 shows the horizontal distribution of the RMSEs and correlation coefficients of the WW3 forecast SWH
+and BU-Net corrected SWH over the NWPO region. Note that the RMSE and correlation coefficient at each
+spatial point are calculated with respect to ERA5 using 365 samples of the year 2021. At a lead time of 24 hr,
+the WW3 forecast SWH has a large area with RMSEs exceeding 0.4 m, mainly located to the east of Taiwan
+island (Figure 3a). After the bias correction, RMSEs in the above area are reduced to less than 0.2 m (Figure 3b).
+In particular, the largest RMSE (0.74 m) over the whole study region at a lead time of 24 hr is located on the
+coast of Jiangsu province (Figure 3a). After bias correction by the BU-Net, the local maximum of SWH RMSE
+near Jiangsu province is greatly reduced to 0.25 m (Figure 3b). At lead times of 48 and 72 hr, the WW3 forecast SWH has a large area with RMSEs exceeding 0.6 m, mainly located to the east and northeast of Taiwan
+island. After BU-Net-based bias correction, the SWH RMSEs over the above areas are reduced to less than
+0.4 m (Figures 3c–3f). Besides, the correlation coefficients in nearly the whole study region for all three lead
+times increase due to the use of bias correction. Here we take the Bohai Bay as an example. The correlation
+coefficients in the Bohai Bay at lead times of 24, 48, and 72 hr are 0.82, 0.79, and 0.77 in the direct outputs from
+WW3 (Figures 3g, 3i, and 3k). After BU-Net-based bias correction, the correlation coefficients in the Bohai
+Figure 3. Horizontal distributions of (a–f) Root Mean Squared Errors (RMSEs; units: m) and (g–l) correlation coefficients of significant wave height over the
+Northwest Pacific Ocean in the year 2021. The first and third columns represent the results of WW3, while the second and fourth columns represent the results of
+BU-Nets. The first, second, and third rows correspond to results at lead times of 24, 48, and 72 hr, respectively. The value on each grid point represents the RMSE
+(correlation coefficient) between the time series of forecasts at different lead times and ERA5.
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+7 of 11
+Bay at all three lead times are increased by 0.07, that is, the increasing percentage is about 9% (Figures 3h, 3j,
+and 3l). Therefore, the BU-Net-based bias correction largely reduces SWH RMSEs and improves time correlations between the SWH forecasts and observations.
+3.2. Forecast Performance of BU-Net During Typhoon Passages
+The forecast performance of WW3 over NWPO has the most significant variability in summer, mainly related
+to the frequent typhoon passages (Figure S1 in Supporting Information S1). According to the National Meteorological Centre (NMC), CMA (http://typhoon.nmc.cn/web.html), eight typhoons (Table S4 in Supporting Information S1) passed through the NWPO region in 2021. Here we define the typhoon passage time as the dates
+when a typhoon center is located in the study area. The raw SWH RMSEs against ERA5 over the NWPO region
+during typhoon passages are 0.55, 0.67, and 0.81 m at forecast lead times of 24, 48, and 72 hr (Table S5 in
+Supporting Information S1). After using the BU-Net-based bias correction, the SWH RMSEs against ERA5 are
+reduced to 0.30, 0.39, and 0.53 m. Correspondingly, the drop percentages are 45%, 42%, and 35%, indicating that
+BU-Nets still work under extreme weather conditions. However, ERA5 shows systematic bias compared with
+buoy observations or altimeter measurements (Bidlot et al., 2019), especially under extreme wind conditions.
+We use a gridded multi-mission merged satellite SWH product (WAVE_GLO_WAV_L4_SWH_NRT_OBSERVATIONS_014_003, Mertz et al., 2019) to verify our model's performance under extreme wind conditions. The
+RMSEs of WW3 SWH against the satellite measurements are 0.89, 0.79, and 1.26 m at three different lead times,
+respectively (Table S5 in Supporting Information S1). After bias correction, the RMSEs against the satellite
+measurements are reduced to 0.70, 0.61, and 0.93 m, corresponding to drop percentages of 21%, 23%, and 26%,
+respectively. It demonstrates that the deep-learning bias correction model trained by ERA5 still works when evaluating against the satellite measurements. However, the improvement ratios are smaller than that of the RMSEs
+estimated with respect to ERA5.
+Due to the use of BU-Net-based bias correction, the SWH RMSEs over the NWPO region at all three forecast
+lead times are reduced during the passage times of six out of eight typhoons (Figures 4a–4c). The exceptional
+cases are typhoon Surigae and Choi-wan. After using bias correction, the forecast SWH RMSE against ERA5
+during the passage of typhoon Surigae is reduced by 24% at a lead time of 24 hr (Figure 4a) but increased by
+32% and 27% at lead times of 48 and 72 hr (Figures 4b and 4c). When comparing to the satellite measurements,
+the forecast SWH RMSEs are reduced by 6.8% and 33% at lead times of 24 and 72 hr (Figures 4a and 4c) but
+increased by 6.3% at a lead time of 48 hr (Figure 4b). During the passage of typhoon Choi-wan, the forecast
+SWH RMSEs against ERA5 are reduced by 32%, 46%, and 27% at the three lead times (Table S4 in Supporting
+Information S1). When comparing to the satellite measurements, the forecast SWH RMSEs during the passage
+of typhoon Choi-wan are reduced by 17% and 28% at the lead times of 48 and 72 hr (Figures 4b and 4c), but the
+forecast SWH RMSE at the lead time of 24 hr is the same as the RMSE without bias correction (Figure 4a). The
+possible causes for the bad performance of BU-Net in correcting SWH during typhoon Surigae are the short duration of this typhoon (only 2 days) and the center of this typhoon being mainly located in the southernmost parts
+of the study area, which means that the BU-net may perform worse in the boundary areas than the inner areas.
+Note that the relatively small number of typhoon samples in the training data set is also a possible cause for the
+poor performance of the BU-Net during the passage of typhoon Surigae.
+In the other six cases, the SWH RMSEs against both ERA5 and the satellite measurements show comparatively
+large decreases at all lead times. Here we take typhoon In-fa as an example. The forecasts and observations of
+SWH on 23–24 July with relatively large RMSEs against both ERA5 and the satellite measurements during In-fa
+passage are shown in Figures 4d–4k, while that for the rest days are shown in Figure S2 in Supporting Information S1. During the passage time of typhoon In-fa, the raw SWH RMSEs over the NWPO region against the
+satellite measurements at lead times of 24, 48, and 72 hr are 0.96, 0.95, and 1.48 m. After using the BU-Net-based
+bias correction, the SWH RMSEs against the satellite measurements are reduced to 0.69, 0.58, and 1.05  m,
+corresponding to drop percentages of 28%, 39%, and 29%, respectively. In comparison, the SWH RMSEs against
+ERA5 are reduced by 57%, 55%, and 46%, respectively (Table S4 in Supporting Information S1). Typhoon In-fa
+moved slowly and lasted for a long time (longer than 9 days), which brought huge waves around its moving tracks.
+Note that the numerical wave model WW3 tends to overestimate the SWH over the high SWH area related to
+typhoon In-fa. On 23 July 2021, the SWH around the center of typhoon In-fa in the satellite measurements was
+about 6 m (Figure 4g). However, the SWH around the typhoon center on 23 July 2021, predicted by WW3 at
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+8 of 11
+lead times of 24, 48, and 72 hr, were 9 m (Figure 4e), 10, and 10 m. The BU-Net-based bias correction successfully reduces the overestimated huge waves at all three lead times (Figure 4f). Note that the long duration of
+typhoon In-fa made the most of its tracks in the inner regions of the BU-Net, which is beneficial to the correction
+performance.
+Therefore, the BU-Net-based bias correction could improve the forecast performance of SWH over the NWPO
+region in the presence of typhoons. However, the BU-Net hardly improves the forecast performance of SWH
+when a typhoon with a short duration passes through the boundary regions of the research area.
+3.3. A Comparison of BU-Net and U-Net
+We also conducted all the correction experiments by replacing BU-Net with U-Net. Table S2 in Supporting
+Information S1 displays the SWH RMSEs at three lead times using different bias correction methods. We found
+that the SWH RMSEs of the BU-Net-based bias correction at all three lead times are smaller than those of
+U-Net-based bias correction. The drop percentages in SWH RMSEs of BU-Net with respect to U-Net at three
+lead times are 8.6%, 5.1%, and 9.3%, indicating BU-Net has better accuracy and generalization ability.
+Figure 4. Root Mean Squared Errors (RMSEs; units: m) of significant wave height (SWH) at lead times of (a) 24, (b) 48, and (c) 72 hr over the Northwest Pacific
+Ocean (NWPO) during typhoon passages of the year 2021. The x-axis represents the typhoon, while the y-axis represents the RMSE. The blue bars represent the
+RMSEs against ERA5, while the red bars represent the RMSEs against satellite measurements (a–c). Panels (d–k) are the SWH observations and the forecasts at a lead
+time of 24 hr during the passage of typhoon In-fa (23–24 July 2021) over NWPO. The four columns represent the ERA5 reanalysis, the WW3 forecasts, the BU-Net
+forecasts, and the satellite measurements (SAT), respectively.
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+9 of 11
+4. Summary and Concluding Remarks
+This paper proposed a deep learning-based bias correction method for correcting SWH forecast over the NWPO
+region from numerical wave model WW3. The new deep learning-based bias correction method, that is, BU-Net,
+is constructed by adding batch normalization layers to the U-Net. Results show that the BU-Net converges quickly
+and generalizes well on the testing data set. The BU-Net essentially improves the forecast performance of SWH
+over the NWPO region at lead times of 24, 48, and 72 hr in terms of reducing the SWH RMSE and increasing the correlations with observations. Further, the BU-Net improves the forecast performance of SWH in all
+four seasons and is still valid during typhoon passages. Under extreme wind conditions related to typhoons, the
+BU-Net corrects the overestimated huge waves predicted by WW3, significantly improving the forecast performance. However, the BU-Net performs poorly when the typhoon is in the boundary areas of the NWPO region
+and has a short lifetime.
+We have conducted a series of sensitivity experiments regarding the performance of the BU-Net method as a
+function of the length of the training period. It is revealed that a longer training period does lead to better forecast
+performance. However, a training period of 4 years is long enough to obtain relatively good performance (Table
+S6 in Supporting Information S1). We have also conducted a series of sensitivity experiments regarding the
+performance of the BU-Net method as a function of the number of input variables for the BU-Net. After removing any variables from the six input variables used for training the model, the BU-Net model performs worse in
+predicting the SWH over NWPO (Table S7 in Supporting Information S1).
+Compared to U-Net, BU-Net improves the forecast performance of WW3 at lead times of 24, 48, and 72 hr over
+the NWPO region by about 8%. In this study, the BU-Net has been proved to be a suitable bias correction method
+for correcting the bias of SWH forecast over the NWPO region. The time for a 3-day forecast using WW3 is about
+9 min at the cost of 92 CPU cores, and that for preprocessing and BU-Net-based correction is less than 1 min once
+the BU-Net model is built. Therefore, using the new approach proposed in this study to predict the ocean waves
+in the NWPO region is very efficient. In the future, the BU-Net-based wave forecast method will be tested and
+used operationally in Marine Forecasting Administration.
+Changing Conv-2d in BU-Net into Conv-3d, taking the wave autocorrelation in the time direction into consideration, may further improve the forecast performance. In the future, BU-Net can be applied in the bias correction
+of other important wave parameters like wave period, and discontinuous variables such as precipitation and the
+joint bias correction of winds and waves.
+Data Availability Statement
+The ERA5 reanalysis wave data (Hersbach et  al.,  2018) are available from https://cds.climate.copernicus.eu/
+cdsapp#!/dataset/reanalysis-era5-single-levels?tab=form [Dataset]. The GFS wind data (National Centers for
+Environmental Prediction, National Weather Service, NOAA, U.S. Department of Commerce, 2015) are available from https://rda.ucar.edu/datasets/ds084.1/ [Dataset]. The satellite measurements data (Mertz et al., 2019)
+are available from https://data.marine.copernicus.eu/product/WAVE_GLO_PHY_SWH_L4_NRT_014_003/
+description [Dataset].
+References
+Alexandre, E., Cuadra, L., Nieto-Borge, J. C., Candil-García, G., del Pino, M., & Salcedo-Sanz, S. (2015). A hybrid genetic algorithm–extreme
+learning machine approach for accurate significant wave height reconstruction. Ocean Modelling, 92, 115–123. https://doi.org/10.1016/j.
+ocemod.2015.06.010
+Alves, J.-H. G. M., Wittmann, P., Sestak, M., Schauer, J., Stripling, S., Bernier, N. B., et al. (2013). The NCEP–FNMOC combined wave ensemble product: Expanding benefits of interagency probabilistic forecasts to the oceanic environment. Bulletin of the American Meteorological
+Society, 94(12), 1893–1905. https://doi.org/10.1175/BAMS-D-12-00032.1
+Ardhuin, F., O’Reilly, W. C., Herbers, T. H. C., & Jessen, P. F. (2003). Swell transformation across the continental shelf. Part I: Attenuation and
+directional broadening. Journal of Physical Oceanography, 33(9), 1921–1939. https://doi.org/10.1175/1520-0485(2003)033〈1921:STATCS〉
+2.0.CO;2
+Ardhuin, F., Rogers, E., Babanin, A. V., Filipot, J.-F., Magne, R., Roland, A., et  al. (2010). Semiempirical dissipation source functions
+for ocean waves. Part I: Definition, calibration, and validation. Journal of Physical Oceanography, 40(9), 1917–1941. https://doi.
+org/10.1175/2010JPO4324.1
+Band, S., Mosavi, A., Rabczuk, T., Nabipour, N., & Chau, K. (2020). Prediction of significant wave height; comparison between nested grid
+numerical model, and machine learning models of artificial neural networks, extreme learning and support vector machines. Engineering
+Applications of Computational Fluid Mechanics, 14(1), 805–817. https://doi.org/10.1080/19942060.2020.1773932
+Acknowledgments
+We thank the editor and two anonymous
+reviewers for constructive comments
+that led to the improvement of the manuscript. This work was jointly supported
+by National Key R&D Program of
+China (2020YFA0608000), National
+Natural Science Foundation of China
+(42275154), and Tsinghua University
+Initiative Scientific Research Program
+(2019Z07L02011).
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+10 of 11
+Battjes, J. A., & Janssen, J. P. F. M. (1978). Energy loss and set-up due to breaking of random waves. In 16th international conference on coastal
+engineering (pp. 569–587). https://doi.org/10.1061/9780872621909.034
+Bidlot, J.-R., Lemos, G., & Semedo, A. (2019). ERA5 reanalysis & ERA5 based ocean wave hindcast [Computer software manual].
+Campos, R. M., Alves, J.-H. G. M., Penny, S. G., & Krasnopolsky, V. (2018). Assessments of surface winds and waves from the NCEP ensemble
+forecast system. Weather and Forecasting, 33(6), 1533–1546. https://doi.org/10.1175/WAF-D-18-0086.1
+Campos, R. M., Alves, J.-H. G. M., Penny, S. G., & Krasnopolsky, V. (2019). Global assessments of the NCEP Ensemble Forecast System using
+altimeter data. Ocean Dynamics, 70(3), 405–419. https://doi.org/10.1007/s10236-019-01329-4
+Campos, R. M., Krasnopolsky, V., Alves, J.-H., & Penny, S. G. (2020). Improving NCEP’s global-scale wave ensemble averages using neural
+networks. Ocean Modelling, 149, 101617. https://doi.org/10.1016/j.ocemod.2020.101617
+Cannon, A. J. (2018). Multivariate quantile mapping bias correction: An N-dimensional probability density function transform for climate model
+simulations of multiple variables. Climate Dynamics, 50(1), 31–49. https://doi.org/10.1007/s00382-017-3580-6
+Chang, C.-W., & Mori, N. (2021). Green infrastructure for the reduction of coastal disasters: A review of the protective role of coastal forests
+against tsunami, storm surge, and wind waves. Coastal Engineering Journal, 63(3), 370–385. https://doi.org/10.1080/21664250.2021.1929742
+Chen, D., Liu, F., Zhang, Z., Lu, X., & Li, Z. (2021). Significant wave height prediction based on Wavelet Graph Neural Network. In 2021 IEEE
+4th international conference on big data and artificial intelligence (BDAI) (pp. 80–85). https://doi.org/10.1109/BDAI52447.2021.9515293
+Chu, P. S. (2004). ENSO and tropical cyclone activity. Hurricanes and typhoons: Past, present, and potential. Columbia University Press.
+Deshmukh, A. N., Deo, M. C., Bhaskaran, P. K., Nair, T. M. B., & Sandhya, K. G. (2016). Neural-network-based data assimilation to improve
+numerical ocean wave forecast. IEEE Journal of Oceanic Engineering, 41(4), 944–953. https://doi.org/10.1109/JOE.2016.2521222
+Ding, Y., & Liu, Y. (2008). A study of the teleconnections in the Asian-pacific monsoon region. Acta Meteorologica Sinica, 22, 404–418.
+Dong, C., Loy, C. C., He, K., & Tang, X. (2014). Learning a deep convolutional network for image super-resolution. In Computer vision—ECCV
+2014 (pp. 184–199).
+Ellenson, A., Pei, Y., Wilson, G., Özkan-Haller, H. T., & Fern, X. (2020). An application of a machine learning algorithm to determine and
+describe error patterns within wave model output. Coastal Engineering, 157, 103595. https://doi.org/10.1016/j.coastaleng.2019.103595
+Erickson, M., Colle, B., & Charney, J. (2012). Impact of bias-correction type and conditional training on Bayesian model averaging over the
+Northeast United States. Weather and Forecasting, 27(6), 1449–1469. https://doi.org/10.1175/WAF-D-11-00149.1
+Giorgi, F., & Bi, X. (2000). A study of internal variability of a regional climate model. Journal of Geophysical Research, 105(D24), 29503–
+29521. https://doi.org/10.1029/2000JD900269
+Guan, X. (2020). Wave height prediction based on CNN-LSTM. In 2nd international conference on machine learning (pp. 10–17). Big Data and
+Business Intelligence (MLBDBI). https://doi.org/10.1109/MLBDBI51377.2020.00009
+Hack, J. J., Caron, J. M., Danabasoglu, G., Oleson, K. W., Bitz, C., & Truesdale, J. E. (2006). CCSM–CAM3 climate simulation sensitivity to
+changes in horizontal resolution. Journal of Climate, 19(11), 2267–2289. https://doi.org/10.1175/JCLI3764.1
+Han, L., Chen, M., Chen, K., Chen, H., Zhang, Y., Lu, B., et al. (2021). A deep learning method for bias correction of ECMWF 24–240 h forecasts. Advances in Atmospheric Sciences, 38(9), 1444–1459. https://doi.org/10.1007/s00376-021-0215-y
+Hasselmann, S., Hasselmann, K., Allender, J. H., & Barnett, T. P. (1985). Computations and parameterizations of the nonlinear energy transfer
+in a gravity-wave specturm. Part II: Parameterizations of the nonlinear energy transfer for application in wave models. Journal of Physical
+Oceanography, 15(11), 1378–1391. https://doi.org/10.1175/1520-0485(1985)015<1378:capotn>2.0.co;2
+He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep residual learning for image recognition. In 2016 IEEE conference on computer vision and
+pattern recognition (CVPR) (pp. 770–778). Las Vegas. https://doi.org/10.1109/CVPR.2016.90
+Hersbach, H., Bell, B., Berrisford, P., Biavati, G., Horányi, A., Muñoz Sabater, J., et al. (2018). ERA5 hourly data on single levels from 1959 to
+present [Dataset]. Chang. https://doi.org/10.24381/cds.adbb2d47
+Hwang, P. A. (2011). A note on the ocean surface roughness spectrum. Journal of Atmospheric and Oceanic Technology, 28(3), 436–443. https://
+doi.org/10.1175/2010JTECHO812.1
+Ioffe, S., & Szegedy, C. (2015). Batch normalization: Accelerating deep network training by reducing internal covariate shift. Proceedings of the
+32nd International Conference on International Conference on Machine Learning, 37, 448–456.
+Kalman, R. E. (1960). A new approach to linear filtering and prediction problems. Journal of Basic Engineering, 82(1), 35–45. https://doi.
+org/10.1115/1.3662552
+Lecun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). Gradient-based learning applied to document recognition. Proceedings of the IEEE,
+86(11), 2278–2324. https://doi.org/10.1109/5.726791
+Lemos, G., Menendez, M., Semedo, A., Camus, P., Hemer, M., Dobrynin, M., & Miranda, P. M. A. (2020). On the need of bias correction methods for wave climate projections. Global and Planetary Change, 186, 103109. https://doi.org/10.1016/j.gloplacha.2019.103109
+Li, D., Feng, J., Xu, Z., Yin, B., Shi, H., & Qi, J. (2019). Statistical bias correction for simulated wind speeds over CORDEX-east Asia. Earth and
+Space Science, 6(2), 200–211. https://doi.org/10.1029/2018EA000493
+Li, H., Yu, C., Xia, J., Wang, Y., Zhu, J., & Zhang, P. (2019). A model output machine learning method for grid temperature forecasts in the
+Beijing area. Advances in Atmospheric Sciences, 36(10), 1156–1170. https://doi.org/10.1007/s00376-019-9023-z
+Long, J., Shelhamer, E., & Darrell, T. (2015). Fully convolutional networks for semantic segmentation. In IEEE conference on computer vision
+and pattern recognition (CVPR) (pp. 3431–3440). https://doi.org/10.1109/CVPR.2015.7298965
+Mertz, F., Husson, R., Taburet, N., & Charles, E. (2019). WAVE_GLO_WAV_L4_SWH_NRT_OBSERVATIONS_014_003 [Dataset]. Copernicus Marine Environment Monitoring Service. https://doi.org/10.48670/moi-00177
+Mizuno, K., & White, W. (1983). Annual and interannual variability in the Kuroshio Current system. Journal of Physical Oceanography, 13(10),
+1847–1867. https://doi.org/10.1175/1520-0485(1983)013<1847:aaivit>2.0.co;2
+Möller, D., Bunke, M., Froese, J., Schroer, B., & Harris, G. (2008). Ship disaster and its impact on the transportation chain through simulation.
+In Huntsville simulation conference. Huntsville.
+National Centers for Environmental Prediction, National Weather Service, NOAA, U.S. Department of Commerce. (2015). NCEP GFS 0.25
+degree global forecast grids historical archive. Research Data Archive at the National Center for Atmospheric Research, Computational and
+Information Systems Laboratory. https://doi.org/10.5065/D65D8PWK
+O’Donncha, F., Zhang, Y., Chen, B., & James, S. C. (2018). An integrated framework that combines machine learning and numerical models to
+improve wave-condition forecasts. Journal of Marine Systems, 186, 29–36. https://doi.org/10.1016/j.jmarsys.2018.05.006
+Rasp, S., & Lerch, S. (2018). Neural networks for postprocessing ensemble weather forecasts. Monthly Weather Review, 146(11), 3885–3900.
+https://doi.org/10.1175/MWR-D-18-0187.1
+Reichstein, M., Camps-Valls, G., Stevens, B., Jung, M., Denzler, J., Carvalhais, N., & Prabhat (2019). Deep learning and process understanding
+for data-driven Earth system science. Nature, 566(7743), 195–204. https://doi.org/10.1038/s41586-019-0912-1
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+Geophysical Research Letters
+SUN ET AL.
+10.1029/2022GL100916
+11 of 11
+Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional networks for biomedical image segmentation. In Medical image computing
+and computer-assisted intervention—MICCAI 2015 (pp. 234–241).
+Siddique, N., Paheding, S., Elkin, C. P., & Devabhaktuni, V. (2021). U-net and its variants for medical image segmentation: A review of theory
+and applications. IEEE Access, 9, 82031–82057. https://doi.org/10.1109/ACCESS.2021.3086020
+Soriano, E., Mediero, L., & Garijo, C. (2019). Selection of bias correction methods to assess the impact of climate change on flood frequency
+curves. Water, 11(11), 2266. https://doi.org/10.3390/w11112266
+Thrasher, B., Maurer, E. P., McKellar, C., & Duffy, P. B. (2012). Technical Note: Bias correcting climate model simulated daily temperature
+extremes with quantile mapping. Hydrology and Earth System Sciences, 16(9), 3309–3314. https://doi.org/10.5194/hess-16-3309-2012
+Vandal, T., Kodra, E., Ganguly, S., Michaelis, A., Nemani, R., & Ganguly, A. R. (2018). Generating high resolution climate change projections
+through single image super-resolution: An abridged version. In International joint conferences on artificial intelligence organization. https://
+doi.org/10.24963/ijcai.2018/759
+Wang, B., Wu, Z., Chang, C.-P., Liu, J., Li, J., & Zhou, T. (2010). Another look at interannual-to-interdecadal variations of the East Asian winter
+monsoon: The northern and southern temperature modes. Journal of Climate, 23(6), 1495–1512. https://doi.org/10.1175/2009JCLI3243.1
+Wang, B., Xiang, B., & Lee, J.-Y. (2013). Subtropical high predictability establishes a promising way for monsoon and tropical storm predictions.
+Proceedings of the National Academy of Sciences, 110(8), 2718–2722. https://doi.org/10.1073/pnas.1214626110
+Wang, F., & Tian, D. (2022). On deep learning-based bias correction and downscaling of multiple climate models simulations. Climate Dynamics,
+59(11–12), 3451–3468. https://doi.org/10.1007/s00382-022-06277-2
+Zhang, K., Zuo, W., Chen, Y., Meng, D., & Zhang, L. (2017). Beyond a Gaussian Denoiser: Residual learning of deep CNN for image denoising.
+IEEE Transactions on Image Processing, 26(7), 3142–3155. https://doi.org/10.1109/TIP.2017.2662206
+ 19448007, 2022, 23, Downloaded from https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2022GL100916, Wiley Online Library on [18/12/2025]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
