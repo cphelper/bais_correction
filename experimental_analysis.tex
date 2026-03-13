@@ -65,13 +65,6 @@ Fig.~\ref{fig:workflow} illustrates the complete end-to-end workflow of our prop
 
 \textbf{Stage~6 --- Results \& Outputs.} The framework produces: (i)~bias-corrected SLA fields with 44.2\% RMSE reduction and 94.7\% bias elimination; (ii)~calibrated 90\% and 95\% prediction intervals with PICP of 89.3\% and 92.3\% respectively; (iii)~diagnostic visualizations including scatter plots, time series with PI bands, spatial bias maps, monthly coverage analysis, and QD vs.\ Tube Loss comparisons.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{sla_plots/workflow_diagram.png}
-\caption{Complete workflow of the proposed satellite-guided ML framework. Stage~1 acquires satellite altimeter SLA and CMIP6 ZOS data. Stage~2 preprocesses, regrids, and constructs the feature table. Stage~3 splits data temporally. Stage~4 branches into (A)~Random Forest deterministic correction and (B)~Tube Loss / QD Loss probabilistic prediction intervals. Stage~5 applies conformal calibration using the held-out 2018 set. Stage~6 produces corrected SLA, calibrated PIs, and diagnostic plots.}
-\label{fig:workflow}
-\end{figure*}
-
 %=====================================================================
 \section{Related Work}
 %=====================================================================
@@ -835,5 +828,12 @@ J.~Mayer et~al., ``Validation of key Arctic energy and water budget components i
 DKRZ, ``MPI-ESM1-2-LR model output prepared for CMIP6 ScenarioMIP,'' World Data Center for Climate, 2024.
 
 \end{thebibliography}
+
+\begin{figure*}[p]
+\centering
+\includegraphics[width=\textwidth]{sla_plots/workflow_diagram.png}
+\caption{Complete workflow of the proposed satellite-guided ML framework. Stage~1 acquires satellite altimeter SLA and CMIP6 ZOS data. Stage~2 preprocesses, regrids, and constructs the feature table. Stage~3 splits data temporally. Stage~4 branches into (A)~Random Forest deterministic correction and (B)~Tube Loss / QD Loss probabilistic prediction intervals. Stage~5 applies conformal calibration using the held-out 2018 set. Stage~6 produces corrected SLA, calibrated PIs, and diagnostic plots.}
+\label{fig:workflow}
+\end{figure*}
 
 \end{document}
