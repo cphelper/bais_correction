@@ -45,6 +45,31 @@ Classical bias correction methods (delta method, empirical quantile mapping) are
 
 This paper makes two contributions: (1)~a Random Forest deterministic bias correction framework for CMIP6 SLA, and (2)~a Tube Loss~\cite{anand2024} based neural network for probabilistic prediction interval estimation, benchmarked against standard quantile decomposition (QD) loss. The Tube Loss function, recently proposed for prediction interval estimation, offers theoretical coverage guarantees and allows trading off interval width versus calibration through a single optimization~\cite{anand2024}.
 
+\subsection{Proposed Workflow Overview}
+
+Fig.~\ref{fig:workflow} illustrates the complete end-to-end workflow of our proposed framework, which proceeds through six stages:
+
+\textbf{Stage~1 --- Data Acquisition.} We ingest two complementary datasets: (a)~Level-4 gridded Sea Level Anomaly from multi-mission satellite altimetry (CMEMS \texttt{dt\_global\_twosat\_phy\_l4}), integrating measurements from SARAL/AltiKa, Sentinel-3A/B, Jason-3, and CryoSat-2 on a 0.25° rectilinear grid at monthly resolution (72~files spanning 2015--2020); and (b)~CMIP6 sea surface height above geoid (\texttt{zos}) from MPI-ESM1-2-LR under SSP2-4.5 on a curvilinear ocean grid ($13 \times 23$ points). Both are constrained to the study domain of 60°--80°N, 50°--110°E.
+
+\textbf{Stage~2 --- Preprocessing \& Feature Engineering.} The satellite data is spatially subsetted to the Region of Interest and resampled to monthly means. The CMIP6 \texttt{zos} field is converted to a sea level anomaly by subtracting the 2015--2018 temporal mean ($\text{SLA}(t) = \text{ZOS}(t) - \overline{\text{ZOS}}_{2015\text{--}2018}$). The curvilinear model grid is then regridded to the observation grid using a \texttt{cKDTree} nearest-neighbour interpolation, expanding from $13 \times 23$ to $80 \times 240$ grid points. A tabular feature matrix is constructed by flattening across space and time, yielding 23,524 valid samples with four features per sample: \texttt{model\_sla} (the raw CMIP6 prediction), \texttt{lat} (latitude for north-south bias patterns), \texttt{lon} (longitude for east-west and coastal effects), and \texttt{month} (1--12 for seasonal bias cycles). Samples with missing values are removed.
+
+\textbf{Stage~3 --- Temporal Data Splitting.} The data is split chronologically to simulate application to future unseen periods: training on 2015--2017 (11,808 samples, 50.2\%), calibration on 2018 (3,734 samples, 15.9\%), and testing on 2019--2020 (7,982 samples, 33.9\%). The calibration set is held out exclusively for conformal calibration of prediction intervals and is never used during model training.
+
+\textbf{Stage~4A --- Deterministic Correction.} A Random Forest Regressor (50 trees, max depth 10, scikit-learn) is trained on the 2015--2017 training set to learn the mapping $(\text{model\_sla}, \text{lat}, \text{lon}, \text{month}) \rightarrow \text{obs\_sla}$, where \texttt{obs\_sla} is the satellite altimeter observation. The trained model is serialized and applied to the test set to produce corrected SLA predictions.
+
+\textbf{Stage~4B --- Probabilistic Prediction Intervals.} A feed-forward neural network (PyTorch) with a shared trunk (128$\to$64$\to$32 units, ReLU, 10\% dropout) and three output heads (\emph{base}, \emph{half-width} via softplus, \emph{asymmetry} via sigmoid) is trained using the Tube Loss function~\cite{anand2024} to produce upper and lower prediction interval bounds. The architecture guarantees $\hat{f}_1 \geq \hat{f}_2$ through the parameterization $\hat{f}_1 = \text{base} + \text{softplus}(h_w)(1+\sigma(a))$ and $\hat{f}_2 = \text{base} - \text{softplus}(h_w)(2-\sigma(a))$. Training uses Adam optimizer (lr=$10^{-3}$) with ReduceLROnPlateau scheduling and early stopping. An identical architecture trained with QD (dual pinball) loss~\cite{pearce2018} serves as the baseline.
+
+\textbf{Stage~5 --- Conformal Calibration \& Evaluation.} The raw Tube Loss intervals are calibrated using split conformal prediction~\cite{vovk2005} on the held-out 2018 calibration set. Nonconformity scores $s_i = \max(\hat{f}_2(\mathbf{x}_i) - y_i, \; y_i - \hat{f}_1(\mathbf{x}_i))$ are computed for each calibration sample; the $q$-th quantile of sorted scores yields an additive margin $\hat{q}$ that expands the intervals to $[\hat{f}_2(\mathbf{x}) - \hat{q}, \; \hat{f}_1(\mathbf{x}) + \hat{q}]$, providing distribution-free coverage guarantees. Both deterministic and probabilistic outputs are evaluated on the independent 2019--2020 test set.
+
+\textbf{Stage~6 --- Results \& Outputs.} The framework produces: (i)~bias-corrected SLA fields with 44.2\% RMSE reduction and 94.7\% bias elimination; (ii)~calibrated 90\% and 95\% prediction intervals with PICP of 89.3\% and 92.3\% respectively; (iii)~diagnostic visualizations including scatter plots, time series with PI bands, spatial bias maps, monthly coverage analysis, and QD vs.\ Tube Loss comparisons.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{sla_plots/workflow_diagram.png}
+\caption{Complete workflow of the proposed satellite-guided ML framework. Stage~1 acquires satellite altimeter SLA and CMIP6 ZOS data. Stage~2 preprocesses, regrids, and constructs the feature table. Stage~3 splits data temporally. Stage~4 branches into (A)~Random Forest deterministic correction and (B)~Tube Loss / QD Loss probabilistic prediction intervals. Stage~5 applies conformal calibration using the held-out 2018 set. Stage~6 produces corrected SLA, calibrated PIs, and diagnostic plots.}
+\label{fig:workflow}
+\end{figure*}
+
 %=====================================================================
 \section{Related Work}
 %=====================================================================
