@@ -11,6 +11,8 @@
 \usepackage{hyperref}
 \usepackage{float}
 \usepackage{subcaption}
+\usepackage[section]{placeins}
+\usepackage{stfloats}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -209,7 +211,7 @@ The temporal data split strategy is designed to simulate application to future u
 
 The curvilinear CMIP6 model grid is regridded to the rectilinear satellite observation grid using a \texttt{cKDTree} nearest-neighbour approach. Both datasets are resampled to monthly means and aligned temporally. The resulting feature table contains four predictors per sample:
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Feature Description}
 \label{tab:features}
@@ -294,7 +296,7 @@ The conformal margin $\hat{q}$ is the $\lceil (n_{\text{cal}}+1) \cdot q \rceil 
 
 Table~\ref{tab:rf_results} summarizes the Random Forest correction performance on the independent test period (2019--2020).
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Random Forest Correction Results (Test: 2019--2020)}
 \label{tab:rf_results}
@@ -312,7 +314,7 @@ $R^2$ & --- & $-$0.0856 & --- \\
 
 The correction eliminates nearly all systematic bias (from $-$0.091m to $+$0.005m) and reduces RMSE by 44.2\%. Fig.~\ref{fig:rf_scatter} shows the scatter relationship before and after correction.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_correction_scatter.png}
 \caption{Scatter plots of observed vs.\ predicted SLA for the test period. Left: Raw CMIP6 model. Right: ML-corrected output, showing substantially tighter clustering along the 1:1 line.}
@@ -321,7 +323,7 @@ The correction eliminates nearly all systematic bias (from $-$0.091m to $+$0.005
 
 Fig.~\ref{fig:rf_timeseries} displays the spatially averaged SLA time series. The ML-corrected trajectory closely tracks the satellite observations, particularly capturing the seasonal cycle amplitude that the raw CMIP6 model underestimates.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_time_series.png}
 \caption{Regional mean SLA time series. Black: satellite observations. Blue: raw CMIP6 model. Red dashed: ML-corrected. The vertical grey line marks the train/test split.}
@@ -332,7 +334,7 @@ Fig.~\ref{fig:rf_timeseries} displays the spatially averaged SLA time series. Th
 
 Fig.~\ref{fig:bias_maps} presents the spatial distribution of mean bias over the test period (2019--2020). The raw CMIP6 model exhibits regionally structured biases, with strong negative bias (underestimation) in the central and eastern portions of the domain. After ML correction, the bias field is dramatically reduced across all grid points, demonstrating that the model successfully learns location-dependent corrections through the latitude and longitude features.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_bias_maps.png}
 \caption{Spatial bias maps for the test period (2019--2020). Left: raw CMIP6 model bias. Right: ML-corrected bias. The correction substantially reduces spatially structured errors.}
@@ -343,7 +345,7 @@ Fig.~\ref{fig:bias_maps} presents the spatial distribution of mean bias over the
 
 Table~\ref{tab:demo} demonstrates the model's performance at individual time points, confirming that the correction generalizes to specific months in the unseen test period.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Per-Month Regional Mean SLA Correction}
 \label{tab:demo}
@@ -365,7 +367,7 @@ Table~\ref{tab:demo} demonstrates the model's performance at individual time poi
 
 Table~\ref{tab:tube_results} presents the Tube Loss prediction interval results for two confidence levels.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{Tube Loss Prediction Interval Results (Test: 2019--2020)}
 \label{tab:tube_results}
@@ -384,7 +386,7 @@ The raw Tube Loss network achieves 51.8\% and 64.2\% coverage for the 90\% and 9
 
 Fig.~\ref{fig:tube_timeseries} shows the time series with prediction interval bands.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_tube_loss_timeseries.png}
 \caption{SLA time series with Tube Loss prediction intervals. Green and orange bands represent 90\% and 95\% calibrated PIs. Dashed lines show the median prediction.}
@@ -395,7 +397,7 @@ Fig.~\ref{fig:tube_timeseries} shows the time series with prediction interval ba
 
 Fig.~\ref{fig:monthly_coverage} shows how PICP varies across months. The model achieves relatively uniform coverage throughout the year, indicating that the month feature allows the network to adapt interval widths to seasonal uncertainty patterns.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_tube_loss_monthly_coverage.png}
 \caption{Monthly PICP for the calibrated Tube Loss model. Red dashed lines indicate the target coverage levels. Coverage is fairly uniform across seasons.}
@@ -406,7 +408,7 @@ Fig.~\ref{fig:monthly_coverage} shows how PICP varies across months. The model a
 
 Fig.~\ref{fig:quantile_summary} presents a consolidated view of coverage, interval width, and RMSE improvement metrics for the Tube Loss model.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/quantile_results_summary.png}
 \caption{Three-panel summary: (a) coverage comparison showing conformal calibration effectiveness, (b) average prediction interval width, (c) RMSE comparison demonstrating 50\% improvement over raw CMIP6.}
@@ -419,7 +421,7 @@ Fig.~\ref{fig:quantile_summary} presents a consolidated view of coverage, interv
 
 Table~\ref{tab:qd_vs_tube} compares the two loss functions for the 95\% prediction interval task.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{QD Loss vs.\ Tube Loss Comparison (95\% PI, Calibrated)}
 \label{tab:qd_vs_tube}
@@ -437,7 +439,7 @@ Both methods achieve identical calibrated PICP of 93.0\% (target 95\%) with simi
 
 Fig.~\ref{fig:picp_comparison} presents the side-by-side visual comparison in the style of~\cite{anand2024}, showing the estimated prediction intervals against the empirical (true) quantile bounds.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/picp_mpiw_qd_vs_tube.png}
 \caption{Prediction intervals estimated by (a)~QD Loss and (b)~Tube Loss neural networks. Red dots: test data. Black dashed: empirical (true) PI. Blue solid: estimated PI. Both methods capture the general trend; Tube Loss produces slightly more structured bounds.}
@@ -446,7 +448,7 @@ Fig.~\ref{fig:picp_comparison} presents the side-by-side visual comparison in th
 
 Fig.~\ref{fig:picp_bars} provides the quantitative bar chart comparison.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/picp_mpiw_bars.png}
 \caption{Bar chart comparison of PICP (left) and MPIW (right) for QD Loss and Tube Loss after conformal calibration. Both methods achieve 93.0\% coverage.}
@@ -457,7 +459,7 @@ Fig.~\ref{fig:picp_bars} provides the quantitative bar chart comparison.
 
 Fig.~\ref{fig:tube_scatter} shows the scatter relationship between observed values and the Tube Loss predicted bounds (upper, lower, median) for both confidence levels.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{sla_plots/sla_tube_loss_scatter.png}
 \caption{Observed SLA vs.\ Tube Loss predictions for 90\% and 95\% PIs. Blue: median prediction. Red/green: upper/lower bounds. Points near the 1:1 line indicate good calibration.}
@@ -478,7 +480,7 @@ Both datasets span 2015--2020 at monthly resolution. After regridding the model 
 
 Table~\ref{tab:swh_rf} summarizes the Random Forest correction results for SWH.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{SWH Random Forest Correction Results (Test: 2019--2020)}
 \label{tab:swh_rf}
@@ -496,7 +498,7 @@ $R^2$ & --- & 0.8798 & --- \\
 
 The RF correction reduces SWH RMSE by 33.2\% and achieves an $R^2$ of 0.88, indicating that the corrected predictions explain 88\% of the variance in satellite observations. The systematic positive bias of $+$0.179m (overestimation) is reduced to $-$0.013m. Fig.~\ref{fig:swh_rf_scatter} shows the scatter relationship.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_rf_scatter.png}
 \caption{SWH scatter plots. Left: Raw CMIP6 vs observations (RMSE 0.610m). Right: ML-corrected vs observations (RMSE 0.408m, $R^2$=0.88), showing substantially tighter clustering.}
@@ -505,7 +507,7 @@ The RF correction reduces SWH RMSE by 33.2\% and achieves an $R^2$ of 0.88, indi
 
 Fig.~\ref{fig:swh_rf_ts} shows the regionally averaged SWH time series, demonstrating that the correction closely tracks the seasonal cycle observed by satellite altimeters.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_rf_timeseries.png}
 \caption{SWH regional mean time series. The ML-corrected curve (red dashed) closely follows satellite observations (black), correcting the systematic overestimation of the raw CMIP6 model (blue).}
@@ -516,7 +518,7 @@ Fig.~\ref{fig:swh_rf_ts} shows the regionally averaged SWH time series, demonstr
 
 Fig.~\ref{fig:swh_bias} shows the spatial bias maps for SWH. The raw CMIP6 model exhibits positive bias (overestimation) across most of the Indian Ocean domain, with the largest errors in the Southern Hemisphere. The ML correction dramatically reduces these biases, with residual errors near zero across the domain.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_bias_maps.png}
 \caption{SWH spatial bias maps (2019--2020). Left: raw CMIP6 bias showing widespread overestimation. Right: ML-corrected bias reduced to near zero.}
@@ -527,7 +529,7 @@ Fig.~\ref{fig:swh_bias} shows the spatial bias maps for SWH. The raw CMIP6 model
 
 Table~\ref{tab:swh_tube} presents the Tube Loss PI results for SWH.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{SWH Tube Loss Prediction Interval Results (Test: 2019--2020)}
 \label{tab:swh_tube}
@@ -546,7 +548,7 @@ Notably, the raw Tube Loss coverage for SWH (80.0\% and 87.3\%) is substantially
 
 Fig.~\ref{fig:swh_tube_ts} shows the SWH time series with Tube Loss prediction interval bands.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_tube_loss_timeseries.png}
 \caption{SWH time series with Tube Loss prediction intervals. Green/orange bands: 90\%/95\% calibrated PIs. The intervals capture the seasonal amplitude variations.}
@@ -555,7 +557,7 @@ Fig.~\ref{fig:swh_tube_ts} shows the SWH time series with Tube Loss prediction i
 
 Fig.~\ref{fig:swh_monthly_cov} shows the monthly coverage analysis for SWH.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_tube_loss_monthly_coverage.png}
 \caption{SWH monthly PICP for Tube Loss 90\% and 95\% PIs. Coverage is relatively uniform across months, with slightly lower coverage during high-variability winter months.}
@@ -566,7 +568,7 @@ Fig.~\ref{fig:swh_monthly_cov} shows the monthly coverage analysis for SWH.
 
 Table~\ref{tab:swh_qd_tube} compares QD and Tube Loss for SWH at the 95\% PI level.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{SWH: QD Loss vs.\ Tube Loss (95\% PI, Calibrated)}
 \label{tab:swh_qd_tube}
@@ -582,14 +584,14 @@ Tube Loss & 92.8\% & 1.3436m & 87.1\% & 1.1149m \\
 
 Consistent with the SLA results, Tube Loss produces narrower raw intervals (1.115m vs.\ 1.167m MPIW) while achieving comparable calibrated coverage. Both methods closely approach the 95\% target after conformal calibration.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_picp_mpiw_qd_vs_tube.png}
 \caption{SWH prediction intervals: (a) QD Loss and (b) Tube Loss. Red dots: data. Black dashed: empirical true PI. Blue solid: estimated PI. The SWH dataset shows smoother PI estimation due to the larger sample size.}
 \label{fig:swh_picp_comp}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_picp_mpiw_bars.png}
 \caption{SWH PICP (left) and MPIW (right) comparison. Both methods exceed 92\% calibrated coverage.}
@@ -600,7 +602,7 @@ Consistent with the SLA results, Tube Loss produces narrower raw intervals (1.11
 
 Table~\ref{tab:swh_demo} demonstrates per-month predictions for the SWH dataset.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \caption{SWH Per-Month Prediction Demo (Regional Means)}
 \label{tab:swh_demo}
@@ -622,7 +624,7 @@ All four demonstration time points fall within the 95\% prediction intervals. Th
 
 Fig.~\ref{fig:swh_summary} presents the consolidated SWH quantile performance summary.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\columnwidth]{swh_plots/swh_quantile_summary.png}
 \caption{SWH three-panel summary: (a) coverage comparison, (b) average PI width, (c) RMSE comparison showing 33\% improvement over raw CMIP6.}
