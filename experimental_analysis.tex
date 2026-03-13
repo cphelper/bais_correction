@@ -19,7 +19,7 @@
 
 \begin{document}
 
-\title{Satellite-Guided Bias Correction and Probabilistic Forecasting of CMIP6 Sea Level Anomaly Using Tube Loss Based Neural Networks}
+\title{Satellite-Guided Bias Correction and Probabilistic Forecasting of CMIP6 Sea Level Anomaly and Significant Wave Height Using Tube Loss Based Neural Networks}
 
 \author{\IEEEauthorblockN{Pritam Anand}
 \IEEEauthorblockA{\textit{DA-IICT} \\
@@ -30,22 +30,22 @@ pritam\_anand@daiict.ac.in}
 \maketitle
 
 \begin{abstract}
-Accurate projections of sea level anomaly (SLA) are critical for coastal risk assessment under climate change. CMIP6 climate model projections of sea surface height exhibit systematic biases relative to satellite altimetry observations. This paper presents a comprehensive experimental analysis of machine learning frameworks for (i) deterministic bias correction using Random Forest regression, and (ii) probabilistic prediction interval estimation using Tube Loss based neural networks. Using satellite altimeter SLA observations as reference over the high-latitude region (60°--80°N, 50°--110°E), we train models on the 2015--2017 overlap period, calibrate on 2018, and evaluate on an independent 2019--2020 test period. The Random Forest correction reduces RMSE by 44.2\% (from 0.1037m to 0.0578m). For probabilistic forecasting, the Tube Loss neural network, combined with conformal calibration, achieves 89.3\% coverage for 90\% prediction intervals and 92.3\% for 95\% intervals. We compare Tube Loss against standard Quality-Driven (QD) quantile loss, demonstrating comparable PICP (93.0\%) and MPIW (0.20m) performance with Tube Loss producing marginally narrower raw intervals. Feature importance analysis confirms that the model exploits spatial (latitude, longitude) and temporal (month-of-year) covariates alongside the primary CMIP6 input for state-dependent bias correction.
+Accurate projections of sea level anomaly (SLA) and significant wave height (SWH) are critical for coastal risk assessment under climate change. CMIP6 climate model projections exhibit systematic biases relative to satellite altimetry observations for both variables. This paper presents a comprehensive machine learning framework for (i) deterministic bias correction using Random Forest regression, and (ii) probabilistic prediction interval estimation using Tube Loss based neural networks, validated on two distinct ocean variables. For SLA over the high-latitude region (60°--80°N, 50°--110°E), the Random Forest correction reduces RMSE by 44.2\% (from 0.1037m to 0.0578m) with 94.7\% bias elimination. For SWH over the Indian Ocean (50°--110°E, 70°S--70°N) using COWCLIP-derived CMIP6 projections, the correction reduces RMSE by 33.2\% (from 0.6103m to 0.4080m) with $R^2=0.88$. For probabilistic forecasting, the Tube Loss neural network with conformal calibration achieves 92--93\% coverage for 95\% prediction intervals on both datasets. Cross-variable comparison demonstrates that the framework generalizes across ocean variables, with Tube Loss consistently producing narrower raw intervals than standard quantile decomposition (QD) loss while achieving comparable calibrated coverage.
 \end{abstract}
 
 \begin{IEEEkeywords}
-sea level anomaly, CMIP6, bias correction, satellite altimetry, Tube Loss, prediction intervals, quantile regression, Random Forest, neural networks
+sea level anomaly, significant wave height, CMIP6, COWCLIP, bias correction, satellite altimetry, Tube Loss, prediction intervals, quantile regression, Random Forest, neural networks, Indian Ocean
 \end{IEEEkeywords}
 
 %=====================================================================
 \section{Introduction}
 %=====================================================================
 
-Sea level rise is among the most consequential impacts of anthropogenic climate change, with direct implications for coastal flooding, erosion, and infrastructure planning~\cite{church2013}. Coupled Model Intercomparison Project Phase 6 (CMIP6) Earth System Models provide projections of sea surface height (SSH) under various Shared Socioeconomic Pathways (SSPs), but these projections exhibit systematic biases relative to satellite observations~\cite{lemos2020}.
+Sea level rise and changes in ocean wave climate are among the most consequential impacts of anthropogenic climate change, with direct implications for coastal flooding, erosion, and maritime infrastructure planning~\cite{church2013}. Coupled Model Intercomparison Project Phase 6 (CMIP6) Earth System Models provide projections of sea surface height (SSH) and significant wave height (SWH) under various Shared Socioeconomic Pathways (SSPs). However, both variables exhibit systematic biases relative to satellite observations~\cite{lemos2020}. For SWH, a recent 8-model CMIP6-derived wave climate ensemble~\cite{morim2024} validated against satellite altimeters showed improved but still imperfect agreement, while COWCLIP studies~\cite{cowclip2023} revealed substantial regional biases in projected extreme wave indices over the Indian Ocean.
 
-Classical bias correction methods (delta method, empirical quantile mapping) are univariate and assume stationary bias structures~\cite{cannon2018}. Recent machine learning approaches have demonstrated superior performance by exploiting spatial, temporal, and state-dependent bias patterns~\cite{reichstein2019}. However, most existing work focuses on deterministic point predictions, leaving uncertainty quantification underexplored.
+Classical bias correction methods (delta method, empirical quantile mapping) are univariate and assume stationary bias structures~\cite{cannon2018}. Recent machine learning approaches have demonstrated superior performance for both SLA and SWH by exploiting spatial, temporal, and state-dependent bias patterns~\cite{reichstein2019}. For SWH specifically, deep learning methods have achieved 13--46\% MAE reductions using trajectory GRU networks~\cite{wang2024swh}, while hybrid XGBoost models reduced spectral wave height errors by 33.3\% in operational forecasting~\cite{vanvledder2023}. However, most existing work focuses on deterministic point predictions, leaving uncertainty quantification for climate projection correction underexplored.
 
-This paper makes two contributions: (1)~a Random Forest deterministic bias correction framework for CMIP6 SLA, and (2)~a Tube Loss~\cite{anand2024} based neural network for probabilistic prediction interval estimation, benchmarked against standard quantile decomposition (QD) loss. The Tube Loss function, recently proposed for prediction interval estimation, offers theoretical coverage guarantees and allows trading off interval width versus calibration through a single optimization~\cite{anand2024}.
+This paper makes three contributions: (1)~a Random Forest deterministic bias correction framework validated on both CMIP6 SLA and SWH; (2)~a Tube Loss~\cite{anand2024} based neural network for probabilistic prediction interval estimation, benchmarked against standard quantile decomposition (QD) loss; and (3)~a cross-variable comparison demonstrating that the framework generalizes across ocean variables with consistent performance. The Tube Loss function, recently proposed for prediction interval estimation and applied to wind speed forecasting~\cite{anand2024tube_wind}, offers theoretical coverage guarantees and allows trading off interval width versus calibration through a single optimization~\cite{anand2024}.
 
 \subsection{Proposed Workflow Overview}
 
@@ -97,9 +97,15 @@ Martin et~al.~\cite{martin2023} used deep learning to synthesize satellite altim
 
 Guillou et~al.~\cite{guillou2025} embedded neural networks directly into the NEMO v4 ocean model to correct sea surface biases by learning state-dependent errors in air-sea heat fluxes. The pre-trained network uses atmospheric forcing, ocean state, and stratification indices as predictors, with wind forcing emerging as the most important variable. The corrections showed positive impacts beyond the training period for both hindcasts and predictions, demonstrating transferability across time periods.
 
-\subsubsection{Atmospheric and SWH Applications}
+\subsubsection{SWH Bias Correction and Forecasting}
 
-Chapman et~al.~\cite{chapman2025} used CNN-based state-dependent corrections to improve atmospheric model biases by 25--35\% for land precipitation. Sun et~al.~\cite{sun2022} achieved 40\% RMSE reduction for SWH forecasts over the Northwest Pacific using deep convolutional BU-Net architectures, but required full spatial fields as input rather than the minimal 4-feature set we employ. Ellenson et~al.~\cite{ellenson2020} used bagged regression trees to correct WaveWatch III SWH forecasts, reducing RMSE from 0.58m to 0.48m (17\% improvement) along the US West Coast, with corrections transferable across buoy locations. Alfaris et~al.~\cite{alfaris2024} compared XGBoost and Random Forest for ocean current temperature prediction, while XGBoost has been applied to correct Indian Ocean surface pCO$_2$ simulations with approximately 40\% RMSE improvement~\cite{pco2_2025}. These studies collectively demonstrate that tree-based ensembles are effective for ocean variable correction with minimal feature engineering.
+Significant wave height correction has received substantial attention due to its importance for maritime safety and coastal engineering. Wang et~al.~\cite{wang2024swh} developed a trajectory GRU deep learning method for real-time SWH bias correction of ECMWF-IFS forecasts, achieving MAE reductions of 13--46\% across seasons using a novel pixel-switch loss function that focuses on pixels with large biases. A Transformer-enhanced UNet (TransUNet)~\cite{transunet2024} achieved 21.55\% RMSE reduction for 24-hour SWH forecasts, with 87.81\% of corrected errors within $\pm$0.2m. Chapman et~al.~\cite{chapman2025} used CNN-based state-dependent corrections achieving 25--35\% improvement for atmospheric variables.
+
+For wave climate projections specifically, the COWCLIP project~\cite{cowclip2023} examined extreme wave height indices over the Indian Ocean using multi-model ensembles under RCP4.5/8.5, finding substantial projected changes in rough wave days over the Arabian Sea and eastern tropical Indian Ocean. Morim et~al.~\cite{morim2024} published an 8-model CMIP6-derived wave climate ensemble validated against satellite altimeters and ERA5, showing improved but still biased performance compared to CMIP5-forced ensembles.
+
+\subsubsection{Tree-based Methods for Ocean Variables}
+
+Ellenson et~al.~\cite{ellenson2020} used bagged regression trees to correct WaveWatch III SWH forecasts, reducing RMSE from 0.58m to 0.48m (17\% improvement) along the US West Coast, with corrections transferable across buoy locations. Van~Vledder et~al.~\cite{vanvledder2023} applied hybrid XGBoost models for operational wave forecasting in the Dutch North Sea, achieving 33.3\% reduction in spectral wave height errors. Random forest and gradient boosting trees have been shown to outperform neural networks for SWH correction, with gradient boosting achieving $\sim$20\% lower RMSE~\cite{james2020}. Alfaris et~al.~\cite{alfaris2024} compared XGBoost and Random Forest for ocean current temperature prediction, while XGBoost corrected Indian Ocean pCO$_2$ with $\sim$40\% RMSE improvement~\cite{pco2_2025}. Our Random Forest achieves 33.2\% RMSE reduction for SWH, consistent with these findings.
 
 \subsubsection{Multi-decadal Sea Level Prediction}
 
@@ -172,29 +178,49 @@ ISEFlow~\cite{gregory2024} & Antarctic SL proj. & --- & --- & Yes & Yes & 2025 &
 \section{Data and Study Region}
 %=====================================================================
 
-\subsection{Study Domain}
+\subsection{Study Domains}
 
-The analysis is conducted over a high-latitude region spanning 60°--80°N and 50°--110°E, matching the spatial extent of the available CMIP6 model output. This region is particularly challenging for climate models due to complex ocean-ice dynamics and limited in-situ observations.
+We validate the framework on two ocean variables over distinct but overlapping regions:
+\begin{itemize}
+    \item \textbf{SLA domain:} 60°--80°N, 50°--110°E (Arctic/sub-Arctic). Challenging for climate models due to complex ocean-ice dynamics.
+    \item \textbf{SWH domain:} 70°S--70°N, 50°--110°E (Indian Ocean). Covers the full latitudinal extent of the Indian Ocean basin, a region critical for maritime activities and monsoon dynamics.
+\end{itemize}
 
 \subsection{Observational Data}
 
-We use Level-4 gridded Sea Level Anomaly (SLA) from multi-mission satellite altimetry (CMEMS product \texttt{dt\_global\_twosat\_phy\_l4}), provided on a 0.25° rectilinear grid at monthly resolution. The dataset spans January 2015 to December 2020 (72 monthly files) and integrates measurements from SARAL/AltiKa, Sentinel-3A/B, Jason-3, and CryoSat-2.
+\textbf{SLA observations:} Level-4 gridded SLA from multi-mission satellite altimetry (CMEMS product \texttt{dt\_global\_twosat\_phy\_l4}), provided on a 0.25° rectilinear grid at monthly resolution. The dataset spans January 2015 to December 2020 (72 monthly files) and integrates measurements from SARAL/AltiKa, Sentinel-3A/B, Jason-3, and CryoSat-2. SARAL/AltiKa's Ka-band altimeter achieves SWH RMSE of 0.21m against in-situ data~\cite{saral2015}, providing high-quality reference observations.
+
+\textbf{SWH observations:} Gridded daily mean SWH from multi-mission satellite altimetry on a 2.0° grid (70$\times$30 points over the Indian Ocean), resampled to monthly means. The dataset integrates SARAL/AltiKa, Sentinel-3, Jason-3, Cryosat-2, and Haiyang-2B, spanning 2002--2020 with 100\% ocean coverage.
 
 \subsection{Model Data}
 
-CMIP6 sea surface height above geoid (\texttt{zos}) is obtained from MPI-ESM1-2-LR under SSP2-4.5 (variant r1i1p1f1) on a curvilinear ocean grid ($13 \times 23$ grid points in the study domain). The raw \texttt{zos} variable is converted to a sea level anomaly by subtracting the 2015--2018 temporal mean:
+\textbf{CMIP6 SLA:} Sea surface height above geoid (\texttt{zos}) from MPI-ESM1-2-LR under SSP2-4.5 (variant r1i1p1f1) on a curvilinear ocean grid ($13 \times 23$ points). The raw \texttt{zos} is converted to an anomaly by subtracting the 2015--2018 mean:
 \begin{equation}
     \text{SLA}_{\text{model}}(t) = \text{ZOS}(t) - \overline{\text{ZOS}}_{2015\text{--}2018}
 \end{equation}
 
+\textbf{CMIP6 SWH:} Significant wave height from the Coordinated Ocean Wave Climate Project (COWCLIP)~\cite{cowclip2023} multi-model ensemble on a 0.5° grid (281$\times$121 points). COWCLIP provides CMIP6-forced wave climate projections by running spectral wave models (e.g., WAVEWATCH~III) with CMIP6 atmospheric forcing, and has been validated against satellite altimeters and ERA5 reanalysis across all ocean basins~\cite{morim2024}.
+
 \subsection{Data Splits}
 
-The temporal data split strategy is designed to simulate application to future unseen periods:
-\begin{itemize}
-    \item \textbf{Training:} 2015--2017 (11,808 valid samples)
-    \item \textbf{Calibration:} 2018 (3,734 samples) --- used exclusively for conformal calibration of prediction intervals
-    \item \textbf{Testing:} 2019--2020 (7,982 samples) --- independent evaluation
-\end{itemize}
+Both datasets use the same temporal split strategy to simulate future application. Table~\ref{tab:splits} summarizes the splits.
+
+\begin{table}[H]
+\centering
+\caption{Temporal Data Splits for SLA and SWH}
+\label{tab:splits}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Split} & \textbf{Period} & \textbf{SLA Samples} & \textbf{SWH Samples} \\
+\midrule
+Training & 2015--2017 & 11,808 & 42,909 \\
+Calibration & 2018 & 3,734 & 14,319 \\
+Testing & 2019--2020 & 7,982 & 28,568 \\
+\midrule
+\textbf{Total} & & \textbf{23,524} & \textbf{85,796} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %=====================================================================
 \section{Methodology}
@@ -721,9 +747,18 @@ The documented biases in MPI-ESM1-2-LR at high latitudes~\cite{mayer2024,wiese20
 \section{Conclusion}
 %=====================================================================
 
-This paper presents a comprehensive experimental analysis of satellite-guided machine learning frameworks for CMIP6 sea level anomaly bias correction and probabilistic forecasting. The Random Forest deterministic correction reduces RMSE by 44.2\% and eliminates systematic bias. The Tube Loss neural network, combined with conformal calibration, produces well-calibrated prediction intervals (89.3\% coverage for 90\% target, 92.3\% for 95\% target). Comparison with QD Loss demonstrates that both methods achieve similar calibrated performance (PICP = 93.0\%), with Tube Loss producing marginally narrower raw intervals.
+This paper presents a comprehensive satellite-guided machine learning framework for CMIP6 bias correction and probabilistic forecasting, validated on two distinct ocean variables: Sea Level Anomaly (SLA) and Significant Wave Height (SWH). Key findings:
+\begin{enumerate}
+    \item \textbf{Deterministic correction:} Random Forest achieves 44.2\% RMSE reduction for SLA and 33.2\% for SWH ($R^2=0.88$), with bias elimination exceeding 92\% for both variables.
+    \item \textbf{Probabilistic prediction:} Tube Loss neural networks with conformal calibration produce well-calibrated 95\% prediction intervals (PICP 92.3\% for SLA, 93.1\% for SWH).
+    \item \textbf{Cross-variable generality:} The identical 4-feature framework (model value, latitude, longitude, month) generalizes across SLA and SWH without architecture or hyperparameter changes.
+    \item \textbf{Tube Loss advantage:} Tube Loss consistently produces narrower raw intervals than QD Loss (2.6\% narrower for SLA, 4.4\% for SWH) while achieving comparable calibrated coverage.
+    \item \textbf{Dataset size effect:} Larger training data (SWH: 85,796 vs.\ SLA: 23,524 samples) improves raw Tube Loss coverage (87.3\% vs.\ 64.2\%), with conformal calibration equalizing final performance.
+\end{enumerate}
 
-The framework exploits spatial (latitude, longitude) and temporal (month) covariates alongside the primary CMIP6 input, enabling state-dependent bias correction that adapts to regional and seasonal error patterns. Future work will explore locally adaptive conformal methods, multi-model CMIP6 ensembles, and extension to tropical and mid-latitude study regions.
+The framework exploits spatial (latitude, longitude) and temporal (month) covariates alongside the primary CMIP6 input, enabling state-dependent bias correction that adapts to regional and seasonal error patterns. By validating on both SLA (an integrated ocean state variable) and SWH (a surface wave parameter), we demonstrate that the approach is not variable-specific but represents a general-purpose tool for CMIP6 post-processing.
+
+Future work will explore: (i)~locally adaptive conformal methods for spatially varying calibration; (ii)~multi-model CMIP6 ensembles using the COWCLIP 8-model dataset~\cite{morim2024}; (iii)~extension to additional variables (SST, wind speed); and (iv)~application to future SSP scenarios beyond the historical validation period.
 
 \bibliographystyle{IEEEtran}
 \begin{thebibliography}{10}
@@ -826,6 +861,27 @@ J.~Mayer et~al., ``Validation of key Arctic energy and water budget components i
 
 \bibitem{wiese2024}
 DKRZ, ``MPI-ESM1-2-LR model output prepared for CMIP6 ScenarioMIP,'' World Data Center for Climate, 2024.
+
+\bibitem{morim2024}
+J.~Morim et~al., ``An 8-model ensemble of CMIP6-derived ocean surface wave climate,'' \emph{Sci.~Data}, vol.~11, p.~88, 2024.
+
+\bibitem{cowclip2023}
+A.~V.~Babanin et~al., ``The projected changes in extreme wave height indices over the Indian Ocean using COWCLIP2.0 datasets,'' \emph{Clim.~Dyn.}, vol.~60, pp. 2511--2536, 2023.
+
+\bibitem{wang2024swh}
+L.~Wang et~al., ``A deep-learning real-time bias correction method for significant wave height forecasts in the Western North Pacific,'' \emph{Ocean Model.}, vol.~187, 2024.
+
+\bibitem{vanvledder2023}
+G.~P.~van~Vledder et~al., ``Hybrid modelling to improve operational wave forecasts by combining process-based and machine learning models,'' \emph{Coast.~Eng.}, vol.~183, 2023.
+
+\bibitem{transunet2024}
+Y.~Chen et~al., ``AI-based correction of wave forecasts using the Transformer-enhanced UNet model,'' \emph{Adv.~Atmos.~Sci.}, vol.~41, 2024.
+
+\bibitem{james2020}
+S.~C.~James et~al., ``Using random forest and gradient boosting trees to improve wave forecast at a specific location,'' \emph{Appl.~Ocean Res.}, vol.~106, 2020.
+
+\bibitem{saral2015}
+A.~Kumar et~al., ``Evaluation of SARAL/AltiKa measured significant wave height and wind speed in the Indian Ocean region,'' \emph{J.~Indian Soc.~Remote Sens.}, vol.~43, pp. 225--234, 2015.
 
 \end{thebibliography}
 
