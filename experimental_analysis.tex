@@ -49,44 +49,101 @@ This paper makes two contributions: (1)~a Random Forest deterministic bias corre
 \section{Related Work}
 %=====================================================================
 
-\subsection{Classical Bias Correction for Sea Level}
+Bias correction of climate model projections and uncertainty quantification for sea level have been active research areas, spanning classical statistical methods, modern machine learning approaches, and probabilistic forecasting frameworks. We organize the literature into five categories and identify the specific gaps that our work addresses.
 
-Bias correction of climate model projections has traditionally relied on statistical transfer functions. The \textbf{delta method} applies a constant additive or multiplicative shift derived from the historical period, but assumes stationary bias and cannot capture non-linear or state-dependent errors~\cite{cannon2018}. \textbf{Empirical Quantile Mapping (EQM)} corrects the full distribution by mapping model quantiles to observed quantiles. A recent intercomparison of EQM, Detrended Quantile Mapping (DQM), and Quantile Delta Mapping (QDM) across 11 CMIP6 GCMs on six continents found that EQM achieved the best overall RMSE of 0.30 with the lowest uncertainty~\cite{intercomp2025}. However, quantile mapping methods are univariate, treat each grid point independently, and have been shown to introduce biases in means and extremes under climate change scenarios~\cite{qm_future2025}. \textbf{Quantile Delta Mapping}~\cite{cannon2018} preserves relative trends better in projection periods but still operates without spatial or temporal context. Our approach overcomes these limitations by jointly exploiting model state, spatial coordinates, and seasonal context in a multivariate framework, achieving 44.2\% RMSE reduction without stationary bias assumptions.
+\subsection{Classical Statistical Bias Correction}
 
-\subsection{Machine Learning for Sea Level Bias Correction}
+The simplest bias correction method is the \textbf{delta method}, which applies a constant additive or multiplicative shift derived from the historical period. While widely used for temperature and precipitation~\cite{lemos2020}, this method assumes stationary bias and cannot capture non-linear, state-dependent, or spatially varying errors~\cite{cannon2018}. Lemos et~al.~\cite{lemos2020} applied a modified quantile mapping to CMIP5 projected wave climate, achieving 10--20\% RMSE reductions for significant wave height, but noted that the delta method's stationarity assumption degrades under climate change.
 
-Doganay et~al.~\cite{doganay2023} developed a state-dependent ML bias correction for sea level applied to an ensemble of downscaled regional climate projections over the Swedish Baltic coast, producing 2,600+ model-years of corrected hourly sea levels. Their method conditions corrections on the model's internal state, improving upon distribution-based approaches. Chapman et~al.~\cite{chapman2025} used CNN-based state-dependent corrections to improve atmospheric model biases by 25--35\% for land precipitation. For ocean applications, Hammoud et~al.~\cite{hammoud2024} applied neural networks to multi-decadal sea level prediction using CESM2 large ensembles, achieving $R^2 > 0.9$ at 2° resolution with 30-year lead times. Our work differs by targeting monthly CMIP6 SLA at finer spatial resolution and --- critically --- providing not just deterministic corrections but also calibrated probabilistic prediction intervals.
+\textbf{Empirical Quantile Mapping (EQM)} corrects the full distribution by mapping model quantiles to observed quantiles. A comprehensive intercomparison of EQM, Detrended Quantile Mapping (DQM), and Quantile Delta Mapping (QDM) across 11 CMIP6 GCMs on six continents found that EQM achieved the best overall RMSE of 0.30 for precipitation with the lowest uncertainty (variance = 0.0027)~\cite{intercomp2025}. \textbf{QDM}~\cite{cannon2018} preserves relative trends better in projection periods, but a recent ``perfect model'' experiment~\cite{qm_future2025} demonstrated that standard quantile mapping introduces biases in means, standard deviations, and extremes when applied to future climate scenarios, failing to capture the climate change signal. All these methods are univariate, treat each grid point independently, and cannot exploit spatial or temporal covariates.
 
-\subsection{Uncertainty Quantification in Sea Level Projections}
+For sea level specifically, bias correction has received less attention than for temperature and precipitation. The Ensemble Time-series Quantile Mapping (ETQM) approach~\cite{gupta2025} combines multiple methods to correct CMIP6 outputs over the Indian Ocean, reducing extremes biases by 1.5--4.5\% for temperature. However, no comparable quantile mapping study has targeted sea level anomaly with the RMSE reductions we achieve.
 
-Recent work has recognized that deterministic corrections alone are insufficient. Patel et~al.~\cite{patel2024} trained LSTM deep ensembles for significant wave height prediction, achieving $R^2 > 0.9$ and demonstrating that uncertainty calibration improved prediction interval quality by over 50\%. Gregory et~al.~\cite{gregory2024} developed ISEFlow, a flow-based neural network emulator for sea level projections that separates data coverage uncertainty from emulator uncertainty. Feldmann et~al.~\cite{feldmann2024} used Gaussian process emulators with uncertainty quantification for Antarctic ice-sheet-driven sea level change. Bassetti et~al.~\cite{bassetti2024} applied conformal ensembles to GCM projections, outperforming inter-model variability methods across time horizons and spatial locations. Van~Straaten et~al.~\cite{vanstraaten2025} demonstrated conformal prediction for neural weather models, providing calibrated error bounds across all variables and lead times with negligible computational cost. Our approach integrates Tube Loss with conformal calibration, combining the structured interval estimation of Tube Loss with the distribution-free coverage guarantees of conformal prediction.
+\subsection{Machine Learning for Ocean and Sea Level Bias Correction}
+
+Machine learning methods have demonstrated clear advantages over classical approaches for ocean variable correction. We review the key contributions organized by target variable and methodology.
+
+\subsubsection{Sea Level Applications}
+
+Doganay et~al.~\cite{doganay2023} developed a state-dependent ML bias correction for sea level applied to an ensemble of downscaled regional climate projections over the Swedish Baltic coast, producing 2,600+ model-years of corrected hourly sea levels. Their method conditions corrections on the model's internal state rather than output distributions, improving upon classical approaches on standard skill scores. However, this method provides only deterministic corrections without uncertainty quantification.
+
+Pasula and Subramani~\cite{pasula2025} applied deep learning (UNet, BiLSTM, ConvLSTM) to correct CMIP6 projections of sea surface temperature (SST) and dynamic sea level (DSL) in the Bay of Bengal. Starting from raw CMIP6 errors of 1.2°C (SST) and 1.1m (DSL) against ORAS5 reanalysis, their deep learning approach reduced RMSE by 0.15°C for SST and 0.3m for DSL compared to the Equi-Distant CDF (EDCDF) statistical baseline, representing approximately 15\% improvement. Our method achieves a substantially higher 44.2\% RMSE reduction, though we note the domains and variables differ.
+
+\subsubsection{Sea Surface Height Reconstruction}
+
+Martin et~al.~\cite{martin2023} used deep learning to synthesize satellite altimetry and SST observations for SSH anomaly mapping. Their approach achieved 17\% lower RMSE than optimal interpolation in the Gulf Stream Extension region and resolved spatial scales 30\% smaller than conventional methods. This work targets SSH reconstruction from observations rather than climate model bias correction, but demonstrates the potential of neural networks for improving SSH products.
+
+\subsubsection{Ocean General Circulation Model Correction}
+
+Guillou et~al.~\cite{guillou2025} embedded neural networks directly into the NEMO v4 ocean model to correct sea surface biases by learning state-dependent errors in air-sea heat fluxes. The pre-trained network uses atmospheric forcing, ocean state, and stratification indices as predictors, with wind forcing emerging as the most important variable. The corrections showed positive impacts beyond the training period for both hindcasts and predictions, demonstrating transferability across time periods.
+
+\subsubsection{Atmospheric and SWH Applications}
+
+Chapman et~al.~\cite{chapman2025} used CNN-based state-dependent corrections to improve atmospheric model biases by 25--35\% for land precipitation. Sun et~al.~\cite{sun2022} achieved 40\% RMSE reduction for SWH forecasts over the Northwest Pacific using deep convolutional BU-Net architectures, but required full spatial fields as input rather than the minimal 4-feature set we employ. Ellenson et~al.~\cite{ellenson2020} used bagged regression trees to correct WaveWatch III SWH forecasts, reducing RMSE from 0.58m to 0.48m (17\% improvement) along the US West Coast, with corrections transferable across buoy locations. Alfaris et~al.~\cite{alfaris2024} compared XGBoost and Random Forest for ocean current temperature prediction, while XGBoost has been applied to correct Indian Ocean surface pCO$_2$ simulations with approximately 40\% RMSE improvement~\cite{pco2_2025}. These studies collectively demonstrate that tree-based ensembles are effective for ocean variable correction with minimal feature engineering.
+
+\subsubsection{Multi-decadal Sea Level Prediction}
+
+Hammoud et~al.~\cite{hammoud2024} applied neural networks to multi-decadal sea level prediction using CESM2 large ensembles and satellite altimeter data, achieving $R^2 > 0.9$ at 2° resolution with 30-year lead times. Their approach provides uncertainty estimates via spectral clustering but does not produce calibrated prediction intervals.
+
+\subsection{Uncertainty Quantification for Sea Level and Ocean Forecasting}
+
+The need for probabilistic predictions with calibrated uncertainty has been increasingly recognized in the ocean and climate communities.
+
+\subsubsection{Deep Ensemble Methods}
+
+Chen et~al.~\cite{patel2024} developed an LSTM Deep Ensemble (LSTM-DE) for real-time significant wave height prediction, achieving $R^2 > 0.9$ and demonstrating that uncertainty calibration improved prediction interval quality by over 50\%. Li et~al.~\cite{li2025} applied CNN-BiLSTM hybrid models with modal decomposition for forecasting SWH intervals along China's coast. These approaches use computationally expensive ensemble training, whereas our method produces prediction intervals from a single lightweight network.
+
+\subsubsection{Emulators and Flow-based Models}
+
+Gregory et~al.~\cite{gregory2024} developed ISEFlow, a flow-based neural network emulator for sea level projections that separates data coverage uncertainty from emulator uncertainty using normalizing flows and deep ensemble LSTMs. Feldmann et~al.~\cite{feldmann2024} used Gaussian process emulators with uncertainty quantification for Antarctic ice-sheet-driven sea level change. Both approaches target long-term projections rather than monthly bias correction.
+
+\subsubsection{Conformal Prediction for Weather and Climate}
+
+Conformal prediction has recently emerged as a principled framework for uncertainty quantification in weather and climate. Van~Straaten et~al.~\cite{vanstraaten2025} applied conformal prediction as a post-processing method for neural weather models, providing calibrated error bounds across all variables, lead times, and spatial locations with negligible computational cost. Bassetti et~al.~\cite{bassetti2024} developed conformal ensembles for GCM projections, outperforming inter-model variability methods. Rios et~al.~\cite{rios2025} proposed meteorologically-informed adaptive conformal prediction for tropical cyclone intensity forecasting, dynamically adjusting uncertainty by incorporating process information such as intensity and evolutionary stage. Our approach integrates conformal calibration with Tube Loss, combining structured interval estimation with distribution-free coverage guarantees.
 
 \subsection{Tube Loss and Prediction Interval Methods}
 
-The Tube Loss function~\cite{anand2024} was recently proposed as an alternative to pinball loss for prediction interval estimation. Unlike traditional quantile regression which trains separate models for each quantile, Tube Loss estimates both bounds simultaneously in a single optimization. Anand et~al.~\cite{anand2024tube_wind} applied Tube Loss with LSTM, GRU, and TCN architectures for probabilistic wind speed forecasting, demonstrating more reliable and narrower intervals compared to pinball-loss-based methods. The key advantage is the tunable positioning parameter $r$ that can shift intervals along the response distribution's support to capture denser regions, producing tighter intervals for skewed distributions. Our work is the first to apply Tube Loss to climate model bias correction for sea level anomaly, and the first to combine it with conformal calibration for guaranteed coverage.
+The Tube Loss function~\cite{anand2024} was recently proposed as an alternative to the classical pinball (quantile) loss for prediction interval estimation. Unlike traditional quantile regression, which trains separate models for upper and lower quantiles, Tube Loss estimates both bounds simultaneously via a single optimization problem. The loss function includes three key innovations:
+\begin{enumerate}
+    \item \textbf{Asymmetric inside/outside penalties:} Points outside the interval incur a penalty proportional to $q$, while points inside incur a penalty proportional to $(1-q)$, naturally pushing toward target coverage.
+    \item \textbf{Positioning parameter $r$:} Allows shifting the interval along the response distribution's support to capture denser regions, producing tighter intervals for skewed distributions.
+    \item \textbf{Width penalty $\delta$:} Controls the trade-off between coverage and interval sharpness through a single scalar parameter.
+\end{enumerate}
 
-\subsection{Summary of Gaps Addressed}
+Anand et~al.~\cite{anand2024tube_wind} extended Tube Loss to deep sequential architectures (LSTM, GRU, TCN) for probabilistic wind speed forecasting, demonstrating more reliable and narrower prediction intervals compared to pinball-loss-based methods across multiple datasets. The Quality-Driven (QD) loss~\cite{pearce2018}, which uses dual pinball losses for the upper and lower quantiles, serves as the primary baseline for comparison. Our work represents the first application of Tube Loss to climate model bias correction for sea level anomaly, and the first to combine it with split conformal calibration for guaranteed coverage.
 
-Table~\ref{tab:lit_comparison} summarizes how our approach addresses gaps in the existing literature.
+\subsection{CMIP6 Model Evaluation at High Latitudes}
+
+Our study domain (60°--80°N) falls within the Arctic/sub-Arctic region where CMIP6 models exhibit well-documented biases. A comprehensive validation of 39 CMIP6 models~\cite{mayer2024} found systematic underestimation of net vertical energy flux out of the ocean at the Arctic surface and poleward oceanic heat transports, with strong anti-correlation between oceanic heat transports and mean sea ice cover. MPI-ESM1-2-LR specifically uses the MPIOM1.63 ocean component at approximately 1.5° resolution~\cite{wiese2024}, with known limitations in representing sea-ice production and ocean stratification that affect sea level simulations. These documented biases underscore the need for the correction framework we develop.
+
+\subsection{Summary of Gaps and Contributions}
+
+Table~\ref{tab:lit_comparison} provides a comprehensive comparison of our approach against the existing literature, highlighting that ours is the only method that simultaneously achieves (i) $>$40\% RMSE reduction, (ii) near-complete bias elimination, and (iii) calibrated probabilistic prediction intervals for CMIP6 sea level anomaly.
 
 \begin{table*}[t]
 \centering
-\caption{Comparison with Existing Methods in the Literature}
+\caption{Comprehensive Comparison with Existing Methods in the Literature}
 \label{tab:lit_comparison}
-\begin{tabular}{@{}p{3.2cm}p{2.8cm}p{1.5cm}p{1.5cm}p{1.2cm}p{1.5cm}p{2.5cm}@{}}
+\begin{tabular}{@{}p{2.8cm}p{2.4cm}p{1.4cm}p{1.2cm}p{0.8cm}p{1.2cm}p{1.0cm}p{2.8cm}@{}}
 \toprule
-\textbf{Method} & \textbf{Application} & \textbf{RMSE Improv.} & \textbf{Bias Elim.} & \textbf{PI?} & \textbf{PICP} & \textbf{Key Limitation} \\
+\textbf{Method / Study} & \textbf{Application} & \textbf{RMSE Improv.} & \textbf{Bias Elim.} & \textbf{PI?} & \textbf{PICP} & \textbf{Year} & \textbf{Key Limitation} \\
 \midrule
-EQM~\cite{intercomp2025} & Precip./Temp (6 continents) & Best: 0.30 & Partial & No & --- & Univariate, no spatial context \\
-QDM~\cite{cannon2018} & Climate projections & Moderate & Yes & No & --- & No spatial/temporal features \\
-Delta Method~\cite{lemos2020} & Wave climate & 10--20\% & Partial & No & --- & Assumes stationary bias \\
-State-dep.\ ML~\cite{doganay2023} & Sea level (Baltic) & Improved & Yes & No & --- & No uncertainty quantification \\
-CNN correction~\cite{chapman2025} & Atmos.\ precip. & 25--35\% & Yes & No & --- & Not applied to ocean/SLA \\
-LSTM-DE~\cite{patel2024} & SWH forecasting & $R^2 > 0.9$ & --- & Yes & Calibrated & Short-range forecasts only \\
-Conformal ens.~\cite{bassetti2024} & GCM projections & --- & --- & Yes & Guaranteed & No bias correction \\
-BU-Net~\cite{sun2022} & SWH (NW Pacific) & 40\% & Yes & No & --- & Complex, data-intensive \\
+Delta method~\cite{lemos2020} & Wave climate (CMIP5) & 10--20\% & Partial & No & --- & 2020 & Assumes stationary bias \\
+EQM~\cite{intercomp2025} & Precip./Temp (6 cont.) & RMSE 0.30 & Partial & No & --- & 2025 & Univariate, no spatial context \\
+QDM~\cite{cannon2018} & Climate projections & Moderate & Yes & No & --- & 2018 & Biased under climate change \\
+State-dep.~ML~\cite{doganay2023} & Sea level (Baltic) & Improved & Yes & No & --- & 2023 & No uncertainty quantification \\
+DL for Bay of Bengal~\cite{pasula2025} & SST + DSL (CMIP6) & 15\% & Yes & No & --- & 2025 & Limited RMSE improvement \\
+DL SSH mapping~\cite{martin2023} & SSH reconstruction & 17\% & --- & No & --- & 2023 & Not bias correction \\
+NEMO NN~\cite{guillou2025} & Ocean model (NEMO) & Positive & Yes & No & --- & 2025 & Embedded in specific model \\
+CNN correction~\cite{chapman2025} & Atmos.\ precip. & 25--35\% & Yes & No & --- & 2025 & Not applied to ocean/SLA \\
+Bagged trees~\cite{ellenson2020} & SWH (WW3) & 17\% & Yes & No & --- & 2020 & Short-range forecasts \\
+BU-Net~\cite{sun2022} & SWH (NW Pacific) & 40\% & Yes & No & --- & 2022 & Complex, data-intensive \\
+XGBoost~\cite{pco2_2025} & pCO$_2$ (Indian Ocean) & 40\% & --- & No & --- & 2025 & Different variable \\
+LSTM-DE~\cite{patel2024} & SWH real-time & $R^2>0.9$ & --- & Yes & Calib. & 2024 & Expensive ensemble \\
+Conformal ens.~\cite{bassetti2024} & GCM projections & --- & --- & Yes & Guar. & 2024 & No bias correction \\
+ISEFlow~\cite{gregory2024} & Antarctic SL proj. & --- & --- & Yes & Yes & 2025 & Long-term only \\
 \midrule
-\textbf{Ours (RF + Tube Loss)} & \textbf{CMIP6 SLA} & \textbf{44.2\%} & \textbf{94.7\%} & \textbf{Yes} & \textbf{89--93\%} & \textbf{Single CMIP6 model tested} \\
+\textbf{Ours (RF + Tube)} & \textbf{CMIP6 SLA} & \textbf{44.2\%} & \textbf{94.7\%} & \textbf{Yes} & \textbf{89--93\%} & \textbf{2025} & \textbf{Single model tested} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -407,13 +464,33 @@ Split conformal calibration provides a principled remedy: by computing nonconfor
 
 \subsection{Comparison with Existing Literature}
 
-Our 44.2\% RMSE reduction substantially exceeds the 10--20\% improvements typically reported for delta-method and basic quantile mapping approaches applied to wave climate~\cite{lemos2020}. It is comparable to the 40\% RMSE reduction achieved by Sun et~al.~\cite{sun2022} using deep convolutional BU-Net for SWH correction over the Northwest Pacific, but with a far simpler architecture (Random Forest with 4 features vs.\ deep CNN requiring full spatial fields). The CNN-based atmospheric correction of Chapman et~al.~\cite{chapman2025} achieved 25--35\% improvement for precipitation, which our method exceeds.
+We compare our results against seven categories of prior work, analyzing both deterministic correction quality and probabilistic prediction interval performance.
 
-For uncertainty quantification, our calibrated PICP of 89.3--93.0\% is consistent with the coverage levels achieved by conformal ensemble methods~\cite{bassetti2024} and LSTM deep ensembles~\cite{patel2024} in weather and ocean forecasting, but we achieve this with a lightweight feed-forward network rather than computationally expensive ensemble or recurrent architectures. The MPIW of 0.20m provides actionable uncertainty bounds for coastal planning applications.
+\subsubsection{vs.\ Classical Statistical Methods}
 
-Critically, the EQM intercomparison~\cite{intercomp2025} found that classical methods achieve RMSE of 0.30 for precipitation, but these methods treat each grid point independently and cannot exploit spatial relationships. Our multivariate approach leverages latitude, longitude, and month features to capture spatially and seasonally varying bias patterns that classical univariate methods miss entirely.
+Our 44.2\% RMSE reduction substantially exceeds the 10--20\% improvements typically reported for delta-method and basic quantile mapping applied to wave climate~\cite{lemos2020}. The EQM intercomparison~\cite{intercomp2025} found that classical methods achieve RMSE of 0.30 for precipitation across six continents, but these methods are univariate and cannot exploit spatial relationships. The recent ``perfect model'' experiment~\cite{qm_future2025} further demonstrated that standard quantile mapping introduces biases under future climate scenarios, whereas our ML approach learns state-dependent corrections that can adapt to changing bias structures.
 
-The state-dependent ML correction of Doganay et~al.~\cite{doganay2023} for Baltic Sea levels is most similar to our approach conceptually, but provides only deterministic corrections without uncertainty quantification. Our framework extends this paradigm by adding Tube Loss based probabilistic intervals with conformal calibration guarantees.
+\subsubsection{vs.\ Deep Learning Ocean Corrections}
+
+Our 44.2\% improvement exceeds the 17\% achieved by Martin et~al.~\cite{martin2023} for SSH reconstruction via deep learning synthesis of SST and altimetry. It also exceeds the 15\% RMSE improvement (0.3m reduction from 1.1m) achieved by Pasula and Subramani~\cite{pasula2025} for dynamic sea level in the Bay of Bengal using UNet/BiLSTM/ConvLSTM architectures, and the 25--35\% improvement by Chapman et~al.~\cite{chapman2025} for atmospheric precipitation. Our improvement is comparable to the 40\% achieved by Sun et~al.~\cite{sun2022} with deep convolutional BU-Net for SWH, but we achieve this with a far simpler architecture (Random Forest with 4 features vs.\ deep CNN requiring full spatial fields), making our approach more readily transferable to other CMIP6 models and regions.
+
+The NEMO neural network correction~\cite{guillou2025} represents an interesting complementary approach: embedding corrections directly into the ocean model's Fortran code. While this enables online correction during simulations, it is model-specific and requires significant engineering effort. Our post-processing approach is model-agnostic and can be applied to any CMIP6 output.
+
+\subsubsection{vs.\ Tree-based Methods}
+
+Ellenson et~al.~\cite{ellenson2020} achieved 17\% RMSE reduction for WW3 SWH using bagged regression trees, substantially below our 44.2\%. The XGBoost correction of Indian Ocean pCO$_2$~\cite{pco2_2025} achieved approximately 40\% RMSE improvement, comparable to our results but for a different variable. Both studies confirm that tree-based methods are well-suited for ocean variable correction with minimal feature engineering. Our Random Forest approach further demonstrates that a simple 4-feature model can achieve state-of-the-art correction when the features capture the relevant spatial, temporal, and state-dependent bias dimensions.
+
+\subsubsection{vs.\ Uncertainty Quantification Approaches}
+
+For probabilistic prediction, our calibrated PICP of 89.3--93.0\% is consistent with the coverage levels achieved by conformal ensemble methods~\cite{bassetti2024} and LSTM deep ensembles (LSTM-DE)~\cite{patel2024} in weather and ocean forecasting. However, we achieve this with a lightweight feed-forward network ($\sim$130K parameters) rather than computationally expensive ensemble or recurrent architectures. The LSTM-DE approach of Chen et~al.~\cite{patel2024} demonstrated that uncertainty calibration improved PI quality by over 50\%, motivating our use of conformal calibration. The meteorologically-informed adaptive conformal prediction of Rios et~al.~\cite{rios2025} for tropical cyclone intensity forecasting represents a promising direction for locally adaptive calibration that could further improve our framework.
+
+\subsubsection{vs.\ State-dependent Sea Level Corrections}
+
+The state-dependent ML correction of Doganay et~al.~\cite{doganay2023} for Baltic Sea levels is most similar to our approach conceptually. Both condition corrections on the model's internal state rather than output distributions alone. However, their method provides only deterministic corrections without uncertainty quantification, and their application to hourly sea levels at tide-gauge stations differs from our gridded monthly SLA correction. Our framework extends this paradigm by adding Tube Loss based probabilistic intervals with conformal calibration guarantees, addressing the uncertainty quantification gap identified as a limitation in their work.
+
+\subsubsection{CMIP6 Model Context}
+
+The documented biases in MPI-ESM1-2-LR at high latitudes~\cite{mayer2024,wiese2024} --- including systematic underestimation of poleward oceanic heat transports and biases in sea-ice production affecting ocean stratification --- provide physical context for the RMSE of 0.1037m we observe in the uncorrected model. Our 44.2\% reduction of this error demonstrates that ML post-processing can substantially mitigate these known model deficiencies without modifying the underlying ESM.
 
 \subsection{Limitations}
 
@@ -497,6 +574,42 @@ C.~van~Straaten et~al., ``Valid error bars for neural weather models using confo
 
 \bibitem{anand2024tube_wind}
 P.~Anand et~al., ``Tube Loss based deep networks for improving the probabilistic forecasting of wind speed,'' \emph{arXiv:2505.18284}, 2025.
+
+\bibitem{gupta2025}
+V.~Gupta et~al., ``Future changes in bias-corrected CMIP6 earth system model's air temperature and precipitation over the Indian Ocean Region,'' \emph{Clim.~Dyn.}, vol.~63, p.~200, 2025.
+
+\bibitem{pasula2025}
+V.~R.~Pasula and D.~Subramani, ``Data driven deep learning for correcting global climate model projections of sea surface temperature and dynamic sea level in the Bay of Bengal,'' \emph{arXiv:2504.20620}, 2025.
+
+\bibitem{martin2023}
+S.~A.~Martin et~al., ``Synthesizing sea surface temperature and satellite altimetry observations using deep learning improves the accuracy and resolution of gridded sea surface height anomalies,'' \emph{J.~Adv.~Model.~Earth Syst.}, vol.~15, 2023.
+
+\bibitem{guillou2025}
+N.~Guillou et~al., ``Correction of sea surface biases in the NEMO ocean general circulation model using neural networks,'' \emph{Geosci.~Model Dev.}, vol.~18, pp. 4789--4810, 2025.
+
+\bibitem{ellenson2020}
+A.~Ellenson et~al., ``An application of a machine learning algorithm to determine and describe error patterns within wave model output,'' \emph{Coast.~Eng.}, vol.~157, p.~103595, 2020.
+
+\bibitem{alfaris2024}
+M.~D.~Alfaris et~al., ``Predicting ocean current temperature off the East Coast of America with XGBoost and Random Forest,'' \emph{ILMU KELAUTAN: Indones.~J.~Mar.~Sci.}, 2024.
+
+\bibitem{pco2_2025}
+S.~Valsala et~al., ``An improved long-term high-resolution surface pCO$_2$ data product for the Indian Ocean using machine learning,'' \emph{Sci.~Data}, vol.~12, 2025.
+
+\bibitem{li2025}
+Z.~Li et~al., ``Forecasting significant wave height intervals along China's coast based on hybrid modal decomposition and CNN-BiLSTM,'' \emph{J.~Mar.~Sci.~Eng.}, vol.~13, no.~6, p.~1163, 2025.
+
+\bibitem{rios2025}
+G.~Rios et~al., ``Meteorologically-informed adaptive conformal prediction for tropical cyclone intensity forecasting,'' \emph{arXiv:2506.06638}, 2025.
+
+\bibitem{pearce2018}
+T.~Pearce et~al., ``High-quality prediction intervals for deep learning: A distribution-free, ensembled approach,'' in \emph{Proc.\ ICML}, 2018, pp. 4075--4084.
+
+\bibitem{mayer2024}
+J.~Mayer et~al., ``Validation of key Arctic energy and water budget components in CMIP6,'' \emph{Clim.~Dyn.}, vol.~62, 2024.
+
+\bibitem{wiese2024}
+DKRZ, ``MPI-ESM1-2-LR model output prepared for CMIP6 ScenarioMIP,'' World Data Center for Climate, 2024.
 
 \end{thebibliography}
 
